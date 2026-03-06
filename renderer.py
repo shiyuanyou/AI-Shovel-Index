@@ -19,7 +19,7 @@ import asyncio
 import logging
 import math
 from pathlib import Path
-from typing import Union
+from typing import Dict, List, Union
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from playwright.async_api import async_playwright
@@ -104,10 +104,10 @@ def _build_context(result: AnalysisResult) -> dict:
     """
     accent = STATUS_COLORS.get(result["status"], STATUS_COLORS["cold"])
 
-    drivers = []
-    cooling = []
+    drivers: List[Dict[str, Union[str, float]]] = []
+    cooling: List[Dict[str, Union[str, float]]] = []
     for entry in result["rankings"]:
-        ctx_entry = {
+        ctx_entry: Dict[str, Union[str, float]] = {
             "keyword": entry["keyword"],
             "growth": entry["growth"],
             "pct_str": _pct_str(entry["growth"]),
@@ -173,9 +173,7 @@ async def _render_html_to_png(html_content: str, png_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def render(
-    result: AnalysisResult, output_dir: Union[Path, None] = None
-) -> tuple[Path, Path]:
+def render(result: AnalysisResult, output_dir: Union[Path, None] = None) -> tuple[Path, Path]:
     """Render the daily index card and social post text.
 
     Renders templates/card.html via Jinja2, inlines the compiled Tailwind CSS

@@ -1,12 +1,11 @@
 /* templates/card.css — Tailwind source for AI Shovel Index card.
    Build: npx tailwindcss -i templates/card.css -o templates/card.compiled.css --minify
+   Style: Stripe / Linear dark gradient — SVG semicircle gauge + keyword list
 */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ─── Tailwind component layer — card design system ─── */
 
 @layer base {
   * {
@@ -18,171 +17,232 @@
 
 @layer components {
 
+  /* ── ROOT ──────────────────────────────────────────────────── */
   .card-root {
-    @apply bg-[#080808] text-white overflow-hidden;
     width: 1080px;
     height: 1080px;
+    overflow: hidden;
+    background: #0d0d0d;
+    color: #ffffff;
     font-family: -apple-system, "SF Pro Display", "PingFang SC",
                  "Helvetica Neue", "Microsoft YaHei", sans-serif;
     -webkit-font-smoothing: antialiased;
+    position: relative;
   }
 
-  /* top accent bar */
-  .accent-bar {
+  /* subtle radial glow behind the gauge — colour injected via inline style */
+  .bg-glow {
     position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 640px;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.13;
   }
 
-  /* outer card frame */
+  /* ── OUTER CARD FRAME ───────────────────────────────────────── */
   .card {
-    @apply relative flex flex-col;
+    position: relative;
+    z-index: 1;
     width: 1080px;
     height: 1080px;
-    padding: 64px 72px 56px;
+    display: flex;
+    flex-direction: column;
+    padding: 52px 64px 44px;
   }
 
-  /* ── HEADER ── */
+  /* ── HEADER ─────────────────────────────────────────────────── */
   .header {
-    @apply flex justify-between items-start;
-    margin-bottom: 56px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-shrink: 0;
   }
 
   .brand-name {
-    @apply font-bold tracking-[0.18em] uppercase;
     font-size: 11px;
-    color: rgba(255,255,255,0.35);
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
   }
 
   .brand-date {
-    @apply font-mono;
-    font-size: 14px;
-    color: rgba(255,255,255,0.4);
-    margin-top: 6px;
-    letter-spacing: 0.05em;
+    font-size: 13px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    color: rgba(255,255,255,0.32);
+    margin-top: 5px;
+    letter-spacing: 0.06em;
   }
 
   .status-pill {
-    @apply flex items-center rounded-full;
-    gap: 8px;
-    padding: 8px 18px 8px 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 16px 7px 12px;
+    border-radius: 100px;
     border: 1px solid;
   }
 
   .status-dot {
-    @apply rounded-full flex-shrink-0;
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
   }
 
   .status-text {
-    @apply font-bold uppercase tracking-[0.15em];
-    font-size: 11px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
   }
 
-  /* ── SCORE HERO ── */
-  .score-section {
-    margin-bottom: 48px;
+  /* ── GAUGE SECTION ───────────────────────────────────────────── */
+  .gauge-section {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 4px;
   }
 
-  .score-row {
-    @apply flex items-end;
-    gap: 2px;
-    line-height: 1;
+  .gauge-svg {
+    display: block;
+    overflow: visible;
   }
 
-  .score-number {
-    @apply font-bold text-white;
-    font-size: 160px;
-    line-height: 0.88;
+  /* track arc — grey background ring */
+  .gauge-track {
+    fill: none;
+    stroke: rgba(255,255,255,0.07);
+    stroke-width: 22;
+    stroke-linecap: round;
+  }
+
+  /* fill arc — position set by stroke-dashoffset */
+  .gauge-fill {
+    fill: none;
+    stroke-width: 22;
+    stroke-linecap: round;
+  }
+
+  /* score number */
+  .gauge-number {
+    font-size: 110px;
+    font-weight: 800;
+    fill: #ffffff;
+    text-anchor: middle;
+    dominant-baseline: central;
     letter-spacing: -0.04em;
-    font-variant-numeric: tabular-nums;
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
   }
 
-  .score-denom {
-    @apply font-normal;
-    font-size: 32px;
-    padding-bottom: 18px;
+  .gauge-denom {
+    font-size: 22px;
+    font-weight: 400;
+    text-anchor: middle;
+    dominant-baseline: central;
     letter-spacing: 0.04em;
-    opacity: 0.8;
+    opacity: 0.65;
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
   }
 
-  .phase-label {
-    @apply font-medium;
-    font-size: 20px;
-    color: rgba(255,255,255,0.45);
-    margin-top: 14px;
-    letter-spacing: 0.04em;
+  .gauge-phase {
+    font-size: 15px;
+    font-weight: 500;
+    fill: rgba(255,255,255,0.38);
+    text-anchor: middle;
+    dominant-baseline: central;
+    letter-spacing: 0.06em;
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
   }
 
   .warming-note {
-    font-size: 12px;
-    color: rgba(255,255,255,0.25);
-    margin-top: 8px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
     letter-spacing: 0.04em;
+    margin-top: 4px;
+    text-align: center;
   }
 
-  /* ── DIVIDER ── */
+  /* ── DIVIDER ─────────────────────────────────────────────────── */
   .divider {
     width: 100%;
     height: 1px;
     background: rgba(255,255,255,0.07);
-    margin-bottom: 40px;
+    margin: 16px 0 22px;
+    flex-shrink: 0;
   }
 
-  /* ── KEYWORD LIST ── */
+  /* ── KEYWORD SECTION ─────────────────────────────────────────── */
   .keywords-section {
-    @apply flex-1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
   }
-
-  .kw-group {}
 
   .kw-group-label {
-    @apply uppercase font-bold tracking-[0.2em];
-    font-size: 10px;
-    color: rgba(255,255,255,0.25);
-    margin-bottom: 18px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+    margin-bottom: 12px;
   }
 
   .kw-list {
-    @apply list-none;
+    list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 13px;
+  }
+
+  .kw-cooling-label {
+    margin-top: 20px;
   }
 
   .kw-row {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 5px;
   }
 
   .kw-meta {
-    @apply flex justify-between items-baseline;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
   }
 
   .kw-name {
-    @apply font-semibold;
-    font-size: 18px;
-    color: rgba(255,255,255,0.85);
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
     letter-spacing: 0.01em;
   }
 
   .kw-pct {
-    @apply font-bold font-mono flex-shrink-0;
-    font-size: 16px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.02em;
+    flex-shrink: 0;
   }
 
-  .kw-positive {}          /* color set inline by accent_color */
   .kw-negative { color: #ff453a; }
 
   /* bar */
   .bar-track {
     width: 100%;
     height: 2px;
-    background: rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.05);
     border-radius: 2px;
     overflow: hidden;
     position: relative;
@@ -192,33 +252,32 @@
     position: absolute;
     left: 0; top: 0; bottom: 0;
     border-radius: 2px;
-    opacity: 0.65;
+    opacity: 0.55;
   }
 
-  .bar-positive {}          /* background set inline */
   .bar-negative { background: #ff453a !important; }
 
-  .kw-empty {
-    font-size: 13px;
-    color: rgba(255,255,255,0.22);
-  }
-
-  /* ── FOOTER ── */
+  /* ── FOOTER ─────────────────────────────────────────────────── */
   .footer {
-    @apply flex justify-between items-end;
-    margin-top: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-shrink: 0;
+    margin-top: 16px;
   }
 
   .footer-tagline {
-    font-size: 11px;
-    color: rgba(255,255,255,0.18);
+    font-size: 10px;
+    color: rgba(255,255,255,0.14);
     letter-spacing: 0.05em;
     line-height: 1.6;
   }
 
   .footer-domain {
-    @apply font-semibold lowercase tracking-[0.08em];
-    font-size: 14px;
-    color: rgba(255,255,255,0.2);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.16);
+    text-transform: lowercase;
   }
 }

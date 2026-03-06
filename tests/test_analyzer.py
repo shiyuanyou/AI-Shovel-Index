@@ -4,13 +4,12 @@ Uses in-memory SQLite to avoid touching the real data/index.db.
 All test data is constructed explicitly; no file I/O side effects.
 """
 
-import sqlite3
 from datetime import date, timedelta
 
 import pytest
 
-from analyzer import compute_index, get_records, get_status
-from config import AnalysisResult, CrawlRecord, HISTORY_DAYS, INDEX_MAX
+from analyzer import compute_index, get_status
+from config import CrawlRecord, INDEX_MAX
 
 
 # ---------------------------------------------------------------------------
@@ -123,14 +122,10 @@ class TestNormalIndex:
         today_sellers: int = 100,
     ) -> list[CrawlRecord]:
         records = [
-            _make_record(
-                kw, _days_ago(i), item_count=hist_items, seller_count=hist_sellers
-            )
+            _make_record(kw, _days_ago(i), item_count=hist_items, seller_count=hist_sellers)
             for i in range(7, 0, -1)
         ]
-        records.append(
-            _make_record(kw, TODAY, item_count=today_items, seller_count=today_sellers)
-        )
+        records.append(_make_record(kw, TODAY, item_count=today_items, seller_count=today_sellers))
         return records
 
     def test_index_within_bounds(self) -> None:

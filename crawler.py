@@ -16,7 +16,6 @@ import asyncio
 import logging
 import random
 import sqlite3
-import time
 from datetime import date
 from typing import Union
 
@@ -24,7 +23,6 @@ from playwright.async_api import Browser, Page, async_playwright
 
 from config import (
     CrawlRecord,
-    DB_PATH,
     KEYWORDS,
     get_db,
     init_db,
@@ -40,9 +38,7 @@ logging.basicConfig(
 # Constants
 # ---------------------------------------------------------------------------
 
-XIANYU_SEARCH_URL = (
-    "https://www.goofish.com/search?q={keyword}&sortValue=GmtModifiedDesc"
-)
+XIANYU_SEARCH_URL = "https://www.goofish.com/search?q={keyword}&sortValue=GmtModifiedDesc"
 
 # Delay range between keyword requests (seconds) — basic anti-bot courtesy
 _DELAY_MIN: float = 2.0
@@ -109,9 +105,7 @@ async def _parse_page(page: Page) -> tuple[list[float], list[str]]:
     try:
         await page.wait_for_selector("[data-item-id]", timeout=10_000)
     except Exception:
-        logger.warning(
-            "Timed out waiting for item cards — page may be empty or blocked."
-        )
+        logger.warning("Timed out waiting for item cards — page may be empty or blocked.")
         return prices, seller_ids
 
     # Extract price text from all item cards
@@ -134,9 +128,7 @@ async def _parse_page(page: Page) -> tuple[list[float], list[str]]:
     # Fallback: count any item cards found to estimate item_count
     if not prices:
         item_cards = await page.query_selector_all("[data-item-id]")
-        logger.warning(
-            "No prices extracted; found %d item cards on this page.", len(item_cards)
-        )
+        logger.warning("No prices extracted; found %d item cards on this page.", len(item_cards))
 
     return prices, seller_ids
 
@@ -310,9 +302,7 @@ def save_records(records: list[CrawlRecord]) -> None:
                     ),
                 )
             except sqlite3.Error as exc:
-                logger.error(
-                    "DB write failed for keyword '%s': %s", rec["keyword"], exc
-                )
+                logger.error("DB write failed for keyword '%s': %s", rec["keyword"], exc)
         conn.commit()
     logger.info("Saved %d record(s) to DB.", len(records))
 

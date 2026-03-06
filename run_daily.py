@@ -80,9 +80,7 @@ def run(target_date: str) -> None:
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Run the AI Shovel Index daily pipeline."
-    )
+    parser = argparse.ArgumentParser(description="Run the AI Shovel Index daily pipeline.")
     parser.add_argument(
         "--date",
         type=str,

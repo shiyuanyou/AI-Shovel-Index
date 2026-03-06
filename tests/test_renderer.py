@@ -10,7 +10,7 @@ import pytest
 from PIL import Image
 
 from config import AnalysisResult, IMAGE_HEIGHT, IMAGE_WIDTH, RankingEntry
-from renderer import render, _write_post
+from renderer import render
 
 
 # ---------------------------------------------------------------------------

@@ -7,7 +7,6 @@ No external dependencies; uses only stdlib + config.
 """
 
 import logging
-import sqlite3
 from collections import defaultdict
 from datetime import date, timedelta
 
@@ -154,13 +153,9 @@ def compute_index(records: list[CrawlRecord], today: str) -> AnalysisResult:
         avg_hist_sellers = _mean([r["seller_count"] for r in hist]) if hist else 0.0
 
         # If no history exists, treat growth as 1.0 (neutral baseline)
-        growth_items = (
-            today_rec["item_count"] / avg_hist_items if avg_hist_items > 0 else 1.0
-        )
+        growth_items = today_rec["item_count"] / avg_hist_items if avg_hist_items > 0 else 1.0
         growth_sellers = (
-            today_rec["seller_count"] / avg_hist_sellers
-            if avg_hist_sellers > 0
-            else 1.0
+            today_rec["seller_count"] / avg_hist_sellers if avg_hist_sellers > 0 else 1.0
         )
 
         # Combined growth ratio (used for ranking display)
@@ -169,9 +164,7 @@ def compute_index(records: list[CrawlRecord], today: str) -> AnalysisResult:
         kw_score = combined_growth * INDEX_SCALE
         kw_scores.append(kw_score)
 
-        rankings.append(
-            RankingEntry(keyword=kw, growth=round(combined_growth - 1.0, 4))
-        )
+        rankings.append(RankingEntry(keyword=kw, growth=round(combined_growth - 1.0, 4)))
 
     # Aggregate
     raw_index = _mean(kw_scores) if kw_scores else 0.0

@@ -26,6 +26,7 @@ env/
 # but exclude from repo to avoid binary bloat)
 tests/fixtures/output/*.png
 tests/fixtures/output/*.txt
+tests/fixtures/preview/*.png
 
 # Editors
 .DS_Store
