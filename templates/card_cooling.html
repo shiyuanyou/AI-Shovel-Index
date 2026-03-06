@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080" />
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 1080px;
+  height: 1080px;
+  background: #111108;
+  font-family: "SF Pro Display", "Helvetica Neue", "PingFang SC", "Noto Sans SC", Arial, sans-serif;
+  color: #ffffff;
+  overflow: hidden;
+  position: relative;
+}
+
+.bg-glow {
+  position: absolute;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 500px;
+  border-radius: 50%;
+  opacity: 0.07;
+  filter: blur(100px);
+  pointer-events: none;
+  background: #ff4d4d;
+}
+
+.card {
+  position: relative;
+  width: 1080px;
+  height: 1080px;
+  display: flex;
+  flex-direction: column;
+  padding: 56px 80px 52px;
+}
+
+/* ── HEADER ── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-shrink: 0;
+  margin-bottom: 72px;
+}
+
+.brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: #888880;
+  text-transform: uppercase;
+}
+
+.brand-date {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: #555550;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-text {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: #553333;
+  text-transform: uppercase;
+  margin-bottom: 48px;
+  flex-shrink: 0;
+}
+
+/* ── KEYWORD LIST ── */
+.kw-list {
+  flex: 1;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.kw-row {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.kw-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.kw-name {
+  font-size: 40px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.kw-pct {
+  font-size: 40px;
+  font-weight: 800;
+  color: #ff6b6b;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.bar-track {
+  width: 100%;
+  height: 3px;
+  background: #2a2a22;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: #ff6b6b;
+  min-width: 4px;
+}
+
+/* empty state */
+.empty-msg {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.empty-text {
+  font-size: 28px;
+  color: #444440;
+  letter-spacing: 0.04em;
+}
+
+.empty-sub {
+  font-size: 16px;
+  color: #333330;
+  letter-spacing: 0.06em;
+}
+
+/* ── FOOTER ── */
+.footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 48px;
+}
+
+.footer-tagline {
+  font-size: 12px;
+  color: #3a3a34;
+  letter-spacing: 0.06em;
+}
+
+.footer-handle {
+  font-size: 14px;
+  color: #555550;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+</style>
+</head>
+<body>
+
+  <div class="bg-glow"></div>
+
+  <div class="card">
+
+    <!-- ── HEADER ── -->
+    <header class="header">
+      <div>
+        <p class="brand-name">AI Shovel Index</p>
+        <p class="brand-date">{{ date }}</p>
+      </div>
+      <div class="status-pill"
+           style="border-color: {{ accent_color }}40; background: {{ accent_color }}0d;">
+        <span class="status-dot" style="background: {{ accent_color }};"></span>
+        <span class="status-text" style="color: {{ accent_color }};">{{ status_raw }}</span>
+      </div>
+    </header>
+
+    <!-- ── SECTION LABEL ── -->
+    <p class="section-label">Cooling Signals</p>
+
+    <!-- ── KEYWORD LIST ── -->
+    {% if cooling %}
+    <ul class="kw-list">
+      {% for entry in cooling %}
+      <li class="kw-row">
+        <div class="kw-meta">
+          <span class="kw-name">{{ entry.keyword }}</span>
+          <span class="kw-pct">{{ entry.pct_str }}</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width: {{ entry.bar_pct }}%;"></div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-msg">
+      <div class="empty-icon">&#10024;</div>
+      <p class="empty-text">No cooling signals</p>
+      <p class="empty-sub">All tracked keywords are holding or rising</p>
+    </div>
+    {% endif %}
+
+    <!-- ── FOOTER ── -->
+    <footer class="footer">
+      <p class="footer-tagline">Tracking AI speculation via tutorial demand</p>
+      <p class="footer-handle">{{ author_handle }}</p>
+    </footer>
+
+  </div>
+
+</body>
+</html>

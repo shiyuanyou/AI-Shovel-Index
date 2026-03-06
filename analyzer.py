@@ -107,6 +107,8 @@ def compute_index(records: list[CrawlRecord], today: str) -> AnalysisResult:
             - kw_score = (growth_items * WEIGHT_ITEMS + growth_sellers * WEIGHT_SELLERS) * INDEX_SCALE
         Final index = mean(kw_scores), clamped to [0, INDEX_MAX].
         warming_up = True when distinct historical days < HISTORY_DAYS.
+        week_delta = today's index minus the index computed for the oldest available day
+                     in the window (proxy for 7-days-ago baseline); 0.0 when warming_up.
 
     Args:
         records: All CrawlRecord rows for the relevant date window.
@@ -173,11 +175,49 @@ def compute_index(records: list[CrawlRecord], today: str) -> AnalysisResult:
     # Sort rankings by growth descending
     rankings.sort(key=lambda e: e["growth"], reverse=True)
 
+    # Compute week_delta: index today minus index at the oldest available historical day.
+    # Uses the same scoring formula applied only to the oldest day's records vs its own
+    # prior day slice — but that would require deeper history.  Simpler proxy: compare
+    # today's index against the score computed from the *oldest* day's records using the
+    # remaining history as baseline.  When warming_up (< 7 historical days) we set 0.0
+    # to avoid misleading numbers.
+    week_delta: float = 0.0
+    if not warming_up and historical_dates:
+        oldest_date = min(historical_dates)
+        oldest_by_kw: dict[str, CrawlRecord] = {
+            r["keyword"]: r for r in records if r["date"] == oldest_date
+        }
+        older_history: list[CrawlRecord] = [
+            r for r in records if r["date"] != oldest_date and r["date"] != today
+        ]
+        older_by_kw: dict[str, list[CrawlRecord]] = defaultdict(list)
+        for rec in older_history:
+            older_by_kw[rec["keyword"]].append(rec)
+
+        oldest_scores: list[float] = []
+        for kw in active_keywords:
+            oldest_rec = oldest_by_kw.get(kw)
+            if oldest_rec is None:
+                continue
+            oh = older_by_kw.get(kw, [])
+            avg_o_items = _mean([r["item_count"] for r in oh]) if oh else 0.0
+            avg_o_sellers = _mean([r["seller_count"] for r in oh]) if oh else 0.0
+            g_items = oldest_rec["item_count"] / avg_o_items if avg_o_items > 0 else 1.0
+            g_sellers = oldest_rec["seller_count"] / avg_o_sellers if avg_o_sellers > 0 else 1.0
+            oldest_scores.append(
+                (g_items * WEIGHT_ITEMS + g_sellers * WEIGHT_SELLERS) * INDEX_SCALE
+            )
+
+        if oldest_scores:
+            oldest_index = round(min(_mean(oldest_scores), INDEX_MAX), 2)
+            week_delta = round(final_index - oldest_index, 2)
+
     logger.info(
-        "Index computed for %s: %.2f (%s), warming_up=%s",
+        "Index computed for %s: %.2f (%s), week_delta=%.2f, warming_up=%s",
         today,
         final_index,
         get_status(final_index),
+        week_delta,
         warming_up,
     )
 
@@ -187,6 +227,7 @@ def compute_index(records: list[CrawlRecord], today: str) -> AnalysisResult:
         status=get_status(final_index),
         rankings=rankings,
         warming_up=warming_up,
+        week_delta=week_delta,
     )
 
 

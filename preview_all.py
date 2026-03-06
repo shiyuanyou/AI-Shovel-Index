@@ -1,7 +1,7 @@
-"""preview_all.py — Generate one card PNG per status for visual inspection.
+"""preview_all.py — Generate all four card PNGs per status for visual inspection.
 
 Usage:
-    python3 preview_all.py
+    .venv/bin/python3 preview_all.py
 
 Output goes to tests/fixtures/preview/ so it doesn't pollute the normal
 fixture output directory.
@@ -24,6 +24,7 @@ SCENARIOS: List[AnalysisResult] = [
         status="cold",
         index=8.0,
         warming_up=False,
+        week_delta=-3.2,
         rankings=[
             RankingEntry(keyword="ChatGPT 教程", growth=-0.42),
             RankingEntry(keyword="AI 副业", growth=-0.38),
@@ -38,6 +39,7 @@ SCENARIOS: List[AnalysisResult] = [
         status="early",
         index=28.0,
         warming_up=True,
+        week_delta=0.0,
         rankings=[
             RankingEntry(keyword="AI 副业", growth=0.12),
             RankingEntry(keyword="ChatGPT 教程", growth=0.08),
@@ -52,6 +54,7 @@ SCENARIOS: List[AnalysisResult] = [
         status="rising",
         index=51.0,
         warming_up=False,
+        week_delta=7.3,
         rankings=[
             RankingEntry(keyword="Sora 教程", growth=0.38),
             RankingEntry(keyword="AI 副业", growth=0.31),
@@ -66,6 +69,7 @@ SCENARIOS: List[AnalysisResult] = [
         status="speculation",
         index=67.0,
         warming_up=False,
+        week_delta=12.5,
         rankings=[
             RankingEntry(keyword="Sora 教程", growth=0.52),
             RankingEntry(keyword="AI 副业", growth=0.31),
@@ -80,6 +84,7 @@ SCENARIOS: List[AnalysisResult] = [
         status="bubble",
         index=88.0,
         warming_up=False,
+        week_delta=21.0,
         rankings=[
             RankingEntry(keyword="Sora 教程", growth=1.24),
             RankingEntry(keyword="AI 副业", growth=0.97),
@@ -94,9 +99,15 @@ SCENARIOS: List[AnalysisResult] = [
 if __name__ == "__main__":
     PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
     for s in SCENARIOS:
-        png, txt = render(s, output_dir=PREVIEW_DIR)
-        # Rename so all 5 files coexist (default name is index_YYYY_MM_DD.png)
-        dest = PREVIEW_DIR / f"card_{s['status']}.png"
-        png.rename(dest)
-        print(f"  [{s['status']:12s}]  index={s['index']:5.1f}  → {dest.name}")
+        idx_png, drv_png, cool_png, wkly_png, txt = render(s, output_dir=PREVIEW_DIR)
+        # Rename so all scenario files coexist
+        status = s["status"]
+        idx_png.rename(PREVIEW_DIR / f"card1_index_{status}.png")
+        drv_png.rename(PREVIEW_DIR / f"card2_drivers_{status}.png")
+        cool_png.rename(PREVIEW_DIR / f"card3_cooling_{status}.png")
+        wkly_png.rename(PREVIEW_DIR / f"card4_weekly_{status}.png")
+        print(
+            f"  [{status:12s}]  index={s['index']:5.1f}  delta={s['week_delta']:+.1f}"
+            f"  → card1–4_{status}.png"
+        )
     print(f"\nAll previews saved to: {PREVIEW_DIR}")

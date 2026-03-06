@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080" />
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 1080px;
+  height: 1080px;
+  background: #111108;
+  font-family: "SF Pro Display", "Helvetica Neue", "PingFang SC", "Noto Sans SC", Arial, sans-serif;
+  color: #ffffff;
+  overflow: hidden;
+  position: relative;
+}
+
+/* radial glow behind gauge */
+.bg-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  width: 700px;
+  height: 700px;
+  border-radius: 50%;
+  opacity: 0.12;
+  filter: blur(120px);
+  pointer-events: none;
+}
+
+.card {
+  position: relative;
+  width: 1080px;
+  height: 1080px;
+  display: flex;
+  flex-direction: column;
+  padding: 56px 64px 52px;
+}
+
+/* ── HEADER ── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: #888880;
+  text-transform: uppercase;
+}
+
+.brand-date {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: #555550;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-text {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ── GAUGE SECTION ── */
+.gauge-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-top: -24px;
+}
+
+.gauge-svg {
+  display: block;
+  overflow: visible;
+}
+
+/* track: full semi-circle */
+.gauge-track {
+  fill: none;
+  stroke: #2a2a22;
+  stroke-width: 28;
+  stroke-linecap: round;
+}
+
+/* fill: accent arc */
+.gauge-fill {
+  fill: none;
+  stroke-width: 28;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+/* index number */
+.gauge-number {
+  font-size: 220px;
+  font-weight: 800;
+  fill: #ffffff;
+  text-anchor: middle;
+  dominant-baseline: auto;
+  letter-spacing: -0.04em;
+  font-family: "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* phase label */
+.gauge-phase {
+  font-size: 22px;
+  font-weight: 400;
+  fill: #888880;
+  text-anchor: middle;
+  letter-spacing: 0.08em;
+  font-family: "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* week delta */
+.week-delta {
+  margin-top: 28px;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.warming-note {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #666660;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+/* ── FOOTER ── */
+.footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.footer-tagline {
+  font-size: 12px;
+  color: #3a3a34;
+  letter-spacing: 0.06em;
+}
+
+.footer-handle {
+  font-size: 14px;
+  color: #555550;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+</style>
+</head>
+<body>
+
+  <div class="bg-glow" style="background: {{ accent_color }};"></div>
+
+  <div class="card">
+
+    <!-- ── HEADER ── -->
+    <header class="header">
+      <div>
+        <p class="brand-name">AI Shovel Index</p>
+        <p class="brand-date">{{ date }}</p>
+      </div>
+      <div class="status-pill"
+           style="border-color: {{ accent_color }}40; background: {{ accent_color }}0d;">
+        <span class="status-dot" style="background: {{ accent_color }};"></span>
+        <span class="status-text" style="color: {{ accent_color }};">{{ status_raw }}</span>
+      </div>
+    </header>
+
+    <!-- ── GAUGE ── -->
+    <!--
+      SVG: viewBox 0 0 1080 500
+      Centre: cx=540, cy=480 — circle sits at bottom edge so only top half shows
+      Radius: r=240
+      Arc length (semicircle) = π × 240 ≈ 753.98
+      Path: M 300 480  A 240 240 0 0 1 780 480
+    -->
+    <section class="gauge-section">
+      <svg class="gauge-svg"
+           width="1080" height="500"
+           viewBox="0 0 1080 500"
+           xmlns="http://www.w3.org/2000/svg">
+
+        <!-- track -->
+        <path class="gauge-track"
+              d="M 300 480 A 240 240 0 0 1 780 480"
+              pathLength="{{ gauge_circumference }}" />
+
+        <!-- fill -->
+        <path class="gauge-fill"
+              d="M 300 480 A 240 240 0 0 1 780 480"
+              stroke="{{ accent_color }}"
+              pathLength="{{ gauge_circumference }}"
+              stroke-dasharray="{{ gauge_circumference }}"
+              stroke-dashoffset="{{ arc_offset }}" />
+
+        <!-- big number -->
+        <text class="gauge-number" x="540" y="420">{{ index_int }}</text>
+
+        <!-- phase label -->
+        <text class="gauge-phase" x="540" y="468">{{ phase_label }}</text>
+
+      </svg>
+
+      <!-- week delta -->
+      {% if not warming_up %}
+      <p class="week-delta" style="color: {{ delta_color }};">{{ delta_str }} this week</p>
+      {% endif %}
+
+      {% if warming_up %}
+      <p class="warming-note">warming up — fewer than 7 days of data</p>
+      {% endif %}
+    </section>
+
+    <!-- ── FOOTER ── -->
+    <footer class="footer">
+      <p class="footer-tagline">Tracking AI speculation via tutorial demand</p>
+      <p class="footer-handle">{{ author_handle }}</p>
+    </footer>
+
+  </div>
+
+</body>
+</html>

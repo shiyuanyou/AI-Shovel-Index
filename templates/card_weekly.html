@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080" />
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 1080px;
+  height: 1080px;
+  background: #111108;
+  font-family: "SF Pro Display", "Helvetica Neue", "PingFang SC", "Noto Sans SC", Arial, sans-serif;
+  color: #ffffff;
+  overflow: hidden;
+  position: relative;
+}
+
+.bg-glow {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 600px;
+  border-radius: 50%;
+  opacity: 0.06;
+  filter: blur(120px);
+  pointer-events: none;
+}
+
+.card {
+  position: relative;
+  width: 1080px;
+  height: 1080px;
+  display: flex;
+  flex-direction: column;
+  padding: 56px 80px 52px;
+}
+
+/* ── HEADER ── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-shrink: 0;
+  margin-bottom: 64px;
+}
+
+.brand-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: #888880;
+  text-transform: uppercase;
+}
+
+.brand-date {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: #555550;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-text {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: #555550;
+  text-transform: uppercase;
+  margin-bottom: 52px;
+  flex-shrink: 0;
+}
+
+/* ── BODY ── */
+.brief-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  justify-content: center;
+}
+
+/* signal block */
+.signal-block {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.signal-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.signal-icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.signal-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.signal-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-left: 44px; /* indent to align with title */
+}
+
+.signal-item {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.signal-kw {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.signal-pct {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  flex-shrink: 0;
+}
+
+.signal-desc {
+  font-size: 15px;
+  color: #555550;
+  letter-spacing: 0.04em;
+  padding-left: 44px;
+  margin-top: -4px;
+  line-height: 1.5;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: #222218;
+}
+
+/* ── FOOTER ── */
+.footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 40px;
+}
+
+.footer-tagline {
+  font-size: 12px;
+  color: #3a3a34;
+  letter-spacing: 0.06em;
+}
+
+.footer-handle {
+  font-size: 14px;
+  color: #555550;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+</style>
+</head>
+<body>
+
+  <div class="bg-glow" style="background: {{ accent_color }};"></div>
+
+  <div class="card">
+
+    <!-- ── HEADER ── -->
+    <header class="header">
+      <div>
+        <p class="brand-name">AI Shovel Index</p>
+        <p class="brand-date">{{ date }}</p>
+      </div>
+      <div class="status-pill"
+           style="border-color: {{ accent_color }}40; background: {{ accent_color }}0d;">
+        <span class="status-dot" style="background: {{ accent_color }};"></span>
+        <span class="status-text" style="color: {{ accent_color }};">{{ status_raw }}</span>
+      </div>
+    </header>
+
+    <!-- ── SECTION LABEL ── -->
+    <p class="section-label">Weekly Brief</p>
+
+    <!-- ── BODY ── -->
+    <div class="brief-body">
+
+      <!-- Rising / New shovels -->
+      {% if drivers %}
+      <div class="signal-block">
+        <div class="signal-header">
+          <span class="signal-icon">&#128293;</span>
+          <span class="signal-title" style="color: {{ accent_color }};">Rising Fast</span>
+        </div>
+        <ul class="signal-items">
+          {% for entry in drivers %}
+          <li class="signal-item">
+            <span class="signal-kw">{{ entry.keyword }}</span>
+            <span class="signal-pct" style="color: {{ accent_color }};">{{ entry.pct_str }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% if driver_summary %}
+        <p class="signal-desc">{{ driver_summary }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if drivers and cooling %}
+      <div class="divider"></div>
+      {% endif %}
+
+      <!-- Cooling shovels -->
+      {% if cooling %}
+      <div class="signal-block">
+        <div class="signal-header">
+          <span class="signal-icon">&#10052;</span>
+          <span class="signal-title" style="color: #ff6b6b;">Cooling Down</span>
+        </div>
+        <ul class="signal-items">
+          {% for entry in cooling %}
+          <li class="signal-item">
+            <span class="signal-kw">{{ entry.keyword }}</span>
+            <span class="signal-pct" style="color: #ff6b6b;">{{ entry.pct_str }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% if cooling_summary %}
+        <p class="signal-desc">{{ cooling_summary }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if not drivers and not cooling %}
+      <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+        <p style="font-size:24px; color:#444440; letter-spacing:0.04em;">No signal data available</p>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <footer class="footer">
+      <p class="footer-tagline">Tracking AI speculation via tutorial demand</p>
+      <p class="footer-handle">{{ author_handle }}</p>
+    </footer>
+
+  </div>
+
+</body>
+</html>

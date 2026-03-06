@@ -11,7 +11,6 @@ import pytest
 from analyzer import compute_index, get_status
 from config import CrawlRecord, INDEX_MAX
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -200,7 +199,7 @@ class TestResultStructure:
     def test_required_keys_present(self) -> None:
         records = [_make_record("AI 副业", TODAY)]
         result = compute_index(records, TODAY)
-        for key in ("date", "index", "status", "rankings", "warming_up"):
+        for key in ("date", "index", "status", "rankings", "warming_up", "week_delta"):
             assert key in result
 
     def test_date_passthrough(self) -> None:
@@ -215,3 +214,57 @@ class TestResultStructure:
             entry = result["rankings"][0]
             assert "keyword" in entry
             assert "growth" in entry
+
+
+# ---------------------------------------------------------------------------
+# compute_index — week_delta
+# ---------------------------------------------------------------------------
+
+
+class TestWeekDelta:
+    def _build_full_window(
+        self,
+        kw: str = "AI 副业",
+        hist_items: int = 100,
+        today_items: int = 100,
+    ) -> list[CrawlRecord]:
+        """8 days of records: 7 historical + today."""
+        records = [
+            _make_record(kw, _days_ago(i), item_count=hist_items, seller_count=hist_items)
+            for i in range(7, 0, -1)
+        ]
+        records.append(_make_record(kw, TODAY, item_count=today_items, seller_count=today_items))
+        return records
+
+    def test_week_delta_zero_when_warming_up(self) -> None:
+        """warming_up=True must produce week_delta=0.0."""
+        records = [_make_record("AI 副业", TODAY)]
+        result = compute_index(records, TODAY)
+        assert result["warming_up"] is True
+        assert result["week_delta"] == pytest.approx(0.0)
+
+    def test_week_delta_zero_for_flat_growth(self) -> None:
+        """When today matches history exactly, delta should be ~0."""
+        records = self._build_full_window(hist_items=100, today_items=100)
+        result = compute_index(records, TODAY)
+        assert result["warming_up"] is False
+        # Flat growth: today index ≈ oldest-day index ≈ 50.0 → delta ≈ 0
+        assert result["week_delta"] == pytest.approx(0.0, abs=5.0)
+
+    def test_week_delta_positive_when_rising(self) -> None:
+        """Higher today_items vs hist → today's index > oldest index → delta > 0."""
+        records = [
+            _make_record("AI 副业", _days_ago(i), item_count=50, seller_count=50)
+            for i in range(7, 0, -1)
+        ]
+        # Today is much higher than historical
+        records.append(_make_record("AI 副业", TODAY, item_count=200, seller_count=200))
+        result = compute_index(records, TODAY)
+        assert result["warming_up"] is False
+        assert result["week_delta"] > 0
+
+    def test_week_delta_is_float(self) -> None:
+        """week_delta must be a float."""
+        records = self._build_full_window()
+        result = compute_index(records, TODAY)
+        assert isinstance(result["week_delta"], float)

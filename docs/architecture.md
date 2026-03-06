@@ -8,7 +8,7 @@
 | 爬虫 | Playwright (async) | 无头 Chromium，模拟真实浏览器访问闲鱼 |
 | 存储 | SQLite (`data/index.db`) | 单文件，无需服务器，Git 可追踪 |
 | 分析 | 纯 Python stdlib | 无外部依赖，纯计算 |
-| 渲染 | HTML + Playwright screenshot + Jinja2 | 截图 1200×630 PNG；CJK 字体由系统字体栈自动处理 |
+| 渲染 | HTML + Playwright screenshot + Jinja2 | 截图 4 张 1080×1080 PNG；CJK 字体由系统字体栈自动处理 |
 | 自动化 | GitHub Actions | cron `0 2 * * *`，UTC+0 每日 02:00 触发 |
 | 测试 | pytest | 单元测试覆盖 analyzer、renderer |
 | 格式化 | black (line=100) + ruff | 非协商，CI 强制 |
@@ -29,17 +29,25 @@ AI-Shovel-Index/
 │   └── index.db           # SQLite 数据库（git 忽略，但结构在此记录）
 │
 ├── output/                # 每日生成物（git 忽略）
-│   ├── index_YYYY_MM_DD.png
+│   ├── card1_index_YYYY_MM_DD.png
+│   ├── card2_drivers_YYYY_MM_DD.png
+│   ├── card3_cooling_YYYY_MM_DD.png
+│   ├── card4_weekly_YYYY_MM_DD.png
 │   └── post.txt
 │
 ├── tests/
 │   ├── fixtures/
-│   │   └── output/        # 渲染测试输出（可视化验证）
+│   │   ├── output/        # 渲染测试输出（可视化验证）
+│   │   └── preview/       # preview_all.py 生成的预览图（git 忽略）
 │   ├── test_analyzer.py
 │   └── test_renderer.py
 │
 ├── templates/
-│   └── card.html          # Jinja2 HTML 模板（内联 CSS，深色 Apple Keynote 风格）
+│   ├── card_index.html    # Card 1：核心指数仪表盘 + week_delta
+│   ├── card_drivers.html  # Card 2：Top 4 驱动关键词排行榜
+│   ├── card_cooling.html  # Card 3：退热信号列表（红色强调）
+│   ├── card_weekly.html   # Card 4：Weekly Brief 叙述摘要
+│   └── card.html          # 已废弃（保留备用，renderer 不再引用）
 │
 ├── .github/
 │   └── workflows/
@@ -61,7 +69,10 @@ SQLite: crawl_records 表
     ↓ 读取近8天数据 (analyzer.py)
 AnalysisResult dict
     ↓ (renderer.py)
-output/index_YYYY_MM_DD.png
+output/card1_index_YYYY_MM_DD.png
+output/card2_drivers_YYYY_MM_DD.png
+output/card3_cooling_YYYY_MM_DD.png
+output/card4_weekly_YYYY_MM_DD.png
 output/post.txt
 ```
 
@@ -106,6 +117,7 @@ class AnalysisResult(TypedDict):
     status: str                # "cold"|"early"|"rising"|"speculation"|"bubble"
     rankings: list[dict]       # [{"keyword": str, "growth": float}, ...]
     warming_up: bool           # True if DB has fewer than 7 days of data
+    week_delta: float          # today's index minus oldest-day index in 7-day window; 0.0 if warming_up
 ```
 
 ---
@@ -145,7 +157,16 @@ index = min(mean(kw_scores), 100.0)
 
 ## 渲染规格
 
-**尺寸**：1200 × 630 px（标准社交媒体 OG 图尺寸）
+**尺寸**：1080 × 1080 px（标准社交媒体 1:1 正方形）
+
+**输出卡片**（4张 PNG + 1个 post.txt）：
+
+| 卡片 | 模板 | 内容 |
+|------|------|------|
+| Card 1 | `card_index.html` | 核心指数仪表盘（半圆形）、超大数字、week_delta (↑/↓)、`@yoyoostone` |
+| Card 2 | `card_drivers.html` | Top 4 驱动关键词排行榜 + 进度条 |
+| Card 3 | `card_cooling.html` | 退热信号列表（红色强调），无数据时显示 empty state |
+| Card 4 | `card_weekly.html` | Weekly Brief 叙述摘要（Rising Fast + Cooling Down 分节） |
 
 **视觉风格**：苹果发布会 PPT 风格
 - 背景：深色（`#0a0a0a`）
@@ -157,10 +178,13 @@ index = min(mean(kw_scores), 100.0)
   - speculation → `#ff6b35`（橙红）
   - bubble → `#ff2d55`（苹果红）
 - 字体：系统字体回退链（SF Pro → Helvetica Neue → Arial）
-- 布局：左右分栏 + 底部关键词排行
+- 页脚品牌：`@yoyoostone`
 
 **输出文件**：
-- `output/index_YYYY_MM_DD.png`
+- `output/card1_index_YYYY_MM_DD.png`
+- `output/card2_drivers_YYYY_MM_DD.png`
+- `output/card3_cooling_YYYY_MM_DD.png`
+- `output/card4_weekly_YYYY_MM_DD.png`
 - `output/post.txt`（纯文本，可直接粘贴发布）
 
 ---

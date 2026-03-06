@@ -68,15 +68,19 @@ def run(target_date: str) -> None:
 
     # ── Step 4: Render ─────────────────────────────────────────────────────
     logger.info("[4/4] Rendering output files…")
-    png_path, txt_path = render(result)
+    idx_png, drv_png, cool_png, wkly_png, txt_path = render(result)
 
     logger.info("=== Done ===")
-    logger.info("PNG  → %s", png_path)
+    for png in (idx_png, drv_png, cool_png, wkly_png):
+        logger.info("PNG  → %s", png)
     logger.info("Text → %s", txt_path)
 
     # Print final paths to stdout (for CI artifact collection)
-    print(f"PNG: {png_path}")
-    print(f"TXT: {txt_path}")
+    print(f"Card1 (index):   {idx_png}")
+    print(f"Card2 (drivers): {drv_png}")
+    print(f"Card3 (cooling): {cool_png}")
+    print(f"Card4 (weekly):  {wkly_png}")
+    print(f"TXT:             {txt_path}")
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:

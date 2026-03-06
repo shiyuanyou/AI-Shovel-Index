@@ -64,6 +64,7 @@ IMAGE_HEIGHT: int = 1080
 BG_COLOR: str = "#0a0a0a"
 TEXT_COLOR: str = "#ffffff"
 SUBTEXT_COLOR: str = "#888888"
+AUTHOR_HANDLE: str = "@yoyoostone"
 
 STATUS_COLORS: dict[str, str] = {
     "cold": "#4a9eff",
@@ -103,6 +104,7 @@ class AnalysisResult(TypedDict):
     status: str  # "cold" | "early" | "rising" | "speculation" | "bubble"
     rankings: list[RankingEntry]  # sorted descending by growth
     warming_up: bool  # True when DB has fewer than HISTORY_DAYS days of data
+    week_delta: float  # index change vs 7 days ago (positive = rising, negative = falling)
 
 
 # ---------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 
 Writes test output to tests/fixtures/output/ for visual inspection.
 Tests verify file existence, image dimensions, and post.txt content.
+All four card PNGs (index, drivers, cooling, weekly) are verified.
 """
 
 from pathlib import Path
@@ -9,9 +10,14 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from config import AnalysisResult, IMAGE_HEIGHT, IMAGE_WIDTH, RankingEntry
+from config import (
+    AUTHOR_HANDLE,
+    AnalysisResult,
+    IMAGE_HEIGHT,
+    IMAGE_WIDTH,
+    RankingEntry,
+)
 from renderer import render
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -25,6 +31,7 @@ def _make_result(
     index: float = 67.0,
     warming_up: bool = False,
     date: str = "2026-03-06",
+    week_delta: float = 5.0,
 ) -> AnalysisResult:
     return AnalysisResult(
         date=date,
@@ -37,57 +44,74 @@ def _make_result(
             RankingEntry(keyword="Midjourney 教程", growth=-0.10),
         ],
         warming_up=warming_up,
+        week_delta=week_delta,
     )
 
 
 # ---------------------------------------------------------------------------
-# Output file generation
+# Output file generation — 4 PNGs + 1 txt
 # ---------------------------------------------------------------------------
 
 
 class TestRenderOutputFiles:
-    def test_png_file_created(self, tmp_path: Path) -> None:
+    def test_returns_five_paths(self, tmp_path: Path) -> None:
         result = _make_result()
-        png_path, _ = render(result, output_dir=tmp_path)
-        assert png_path.exists()
-        assert png_path.suffix == ".png"
+        paths = render(result, output_dir=tmp_path)
+        assert len(paths) == 5
+
+    def test_all_pngs_created(self, tmp_path: Path) -> None:
+        result = _make_result()
+        idx, drv, cool, wkly, txt = render(result, output_dir=tmp_path)
+        for p in (idx, drv, cool, wkly):
+            assert p.exists(), f"Missing PNG: {p}"
+            assert p.suffix == ".png"
 
     def test_txt_file_created(self, tmp_path: Path) -> None:
         result = _make_result()
-        _, txt_path = render(result, output_dir=tmp_path)
+        *_, txt_path = render(result, output_dir=tmp_path)
         assert txt_path.exists()
         assert txt_path.name == "post.txt"
 
-    def test_png_filename_contains_date(self, tmp_path: Path) -> None:
+    def test_png_filenames_contain_date(self, tmp_path: Path) -> None:
         result = _make_result(date="2026-03-06")
-        png_path, _ = render(result, output_dir=tmp_path)
-        assert "2026_03_06" in png_path.name
+        idx, drv, cool, wkly, _ = render(result, output_dir=tmp_path)
+        for p in (idx, drv, cool, wkly):
+            assert "2026_03_06" in p.name, f"Date not in filename: {p.name}"
 
-    def test_returns_correct_paths(self, tmp_path: Path) -> None:
+    def test_png_filename_prefixes(self, tmp_path: Path) -> None:
+        result = _make_result(date="2026-03-06")
+        idx, drv, cool, wkly, _ = render(result, output_dir=tmp_path)
+        assert idx.name.startswith("card1_index_")
+        assert drv.name.startswith("card2_drivers_")
+        assert cool.name.startswith("card3_cooling_")
+        assert wkly.name.startswith("card4_weekly_")
+
+    def test_returns_path_objects(self, tmp_path: Path) -> None:
         result = _make_result()
-        png_path, txt_path = render(result, output_dir=tmp_path)
-        assert isinstance(png_path, Path)
-        assert isinstance(txt_path, Path)
+        for p in render(result, output_dir=tmp_path):
+            assert isinstance(p, Path)
 
 
 # ---------------------------------------------------------------------------
-# Image dimensions
+# Image dimensions — all 4 cards must be 1080×1080
 # ---------------------------------------------------------------------------
 
 
 class TestImageDimensions:
-    def test_image_size_1080x1080(self, tmp_path: Path) -> None:
+    def test_all_cards_1080x1080(self, tmp_path: Path) -> None:
         result = _make_result()
-        png_path, _ = render(result, output_dir=tmp_path)
-        img = Image.open(png_path)
-        assert img.size == (IMAGE_WIDTH, IMAGE_HEIGHT)
-        assert img.size == (1080, 1080)
+        idx, drv, cool, wkly, _ = render(result, output_dir=tmp_path)
+        for p in (idx, drv, cool, wkly):
+            img = Image.open(p)
+            assert img.size == (IMAGE_WIDTH, IMAGE_HEIGHT), f"{p.name}: {img.size}"
+            assert img.size == (1080, 1080)
 
-    def test_image_mode_rgb(self, tmp_path: Path) -> None:
+    def test_all_cards_rgb_mode(self, tmp_path: Path) -> None:
         result = _make_result()
-        png_path, _ = render(result, output_dir=tmp_path)
-        img = Image.open(png_path)
-        assert img.mode == "RGB"
+        idx, drv, cool, wkly, _ = render(result, output_dir=tmp_path)
+        for p in (idx, drv, cool, wkly):
+            img = Image.open(p)
+            assert img.mode == "RGB", f"{p.name}: mode={img.mode}"
 
 
 # ---------------------------------------------------------------------------
@@ -97,20 +121,20 @@ class TestImageDimensions:
 
 class TestWarmingUp:
     def test_warming_up_renders_without_error(self, tmp_path: Path) -> None:
-        result = _make_result(warming_up=True, index=50.0, status="rising")
-        png_path, txt_path = render(result, output_dir=tmp_path)
-        assert png_path.exists()
-        assert txt_path.exists()
+        result = _make_result(warming_up=True, index=50.0, status="rising", week_delta=0.0)
+        paths = render(result, output_dir=tmp_path)
+        for p in paths:
+            assert p.exists()
 
     def test_warming_up_notice_in_post_txt(self, tmp_path: Path) -> None:
-        result = _make_result(warming_up=True)
-        _, txt_path = render(result, output_dir=tmp_path)
+        result = _make_result(warming_up=True, week_delta=0.0)
+        *_, txt_path = render(result, output_dir=tmp_path)
         content = txt_path.read_text(encoding="utf-8")
         assert "warming up" in content.lower()
 
     def test_no_warming_up_notice_when_false(self, tmp_path: Path) -> None:
         result = _make_result(warming_up=False)
-        _, txt_path = render(result, output_dir=tmp_path)
+        *_, txt_path = render(result, output_dir=tmp_path)
         content = txt_path.read_text(encoding="utf-8")
         assert "warming up" not in content.lower()
 
@@ -123,33 +147,69 @@ class TestWarmingUp:
 class TestPostTxt:
     def test_score_in_post(self, tmp_path: Path) -> None:
         result = _make_result(index=67.0)
-        _, txt_path = render(result, output_dir=tmp_path)
-        content = txt_path.read_text(encoding="utf-8")
-        assert "67" in content
+        *_, txt_path = render(result, output_dir=tmp_path)
+        assert "67" in txt_path.read_text(encoding="utf-8")
 
     def test_status_in_post(self, tmp_path: Path) -> None:
         result = _make_result(status="speculation")
-        _, txt_path = render(result, output_dir=tmp_path)
-        content = txt_path.read_text(encoding="utf-8")
-        assert "SPECULATION" in content
+        *_, txt_path = render(result, output_dir=tmp_path)
+        assert "SPECULATION" in txt_path.read_text(encoding="utf-8")
 
     def test_date_in_post(self, tmp_path: Path) -> None:
         result = _make_result(date="2026-03-06")
-        _, txt_path = render(result, output_dir=tmp_path)
-        content = txt_path.read_text(encoding="utf-8")
-        assert "2026-03-06" in content
+        *_, txt_path = render(result, output_dir=tmp_path)
+        assert "2026-03-06" in txt_path.read_text(encoding="utf-8")
 
     def test_keywords_in_post(self, tmp_path: Path) -> None:
         result = _make_result()
-        _, txt_path = render(result, output_dir=tmp_path)
-        content = txt_path.read_text(encoding="utf-8")
-        assert "Sora 教程" in content
+        *_, txt_path = render(result, output_dir=tmp_path)
+        assert "Sora 教程" in txt_path.read_text(encoding="utf-8")
 
     def test_hashtags_in_post(self, tmp_path: Path) -> None:
         result = _make_result()
-        _, txt_path = render(result, output_dir=tmp_path)
+        *_, txt_path = render(result, output_dir=tmp_path)
+        assert "#AIshovelindex" in txt_path.read_text(encoding="utf-8")
+
+    def test_author_handle_in_post(self, tmp_path: Path) -> None:
+        result = _make_result()
+        *_, txt_path = render(result, output_dir=tmp_path)
+        assert AUTHOR_HANDLE in txt_path.read_text(encoding="utf-8")
+
+    def test_week_delta_in_post_when_not_warming_up(self, tmp_path: Path) -> None:
+        result = _make_result(warming_up=False, week_delta=7.3)
+        *_, txt_path = render(result, output_dir=tmp_path)
         content = txt_path.read_text(encoding="utf-8")
-        assert "#AIshovelindex" in content
+        assert "7.3" in content
+
+    def test_week_delta_absent_when_warming_up(self, tmp_path: Path) -> None:
+        result = _make_result(warming_up=True, week_delta=0.0)
+        *_, txt_path = render(result, output_dir=tmp_path)
+        content = txt_path.read_text(encoding="utf-8")
+        # No delta line when warming_up
+        assert "vs last week" not in content
+
+
+# ---------------------------------------------------------------------------
+# Cooling-only scenario — card3 must render with data, card2 empty state
+# ---------------------------------------------------------------------------
+
+
+class TestCoolingOnly:
+    def test_all_negative_renders_without_error(self, tmp_path: Path) -> None:
+        result = AnalysisResult(
+            date="2026-03-06",
+            index=8.0,
+            status="cold",
+            rankings=[
+                RankingEntry(keyword="Midjourney 教程", growth=-0.25),
+                RankingEntry(keyword="Stable Diffusion 教程", growth=-0.18),
+            ],
+            warming_up=False,
+            week_delta=-4.0,
+        )
+        idx, drv, cool, wkly, txt = render(result, output_dir=tmp_path)
+        for p in (idx, drv, cool, wkly, txt):
+            assert p.exists()
 
 
 # ---------------------------------------------------------------------------
@@ -159,21 +219,24 @@ class TestPostTxt:
 
 class TestAllStatuses:
     @pytest.mark.parametrize(
-        "status,index",
+        "status,index,delta",
         [
-            ("cold", 10.0),
-            ("early", 30.0),
-            ("rising", 50.0),
-            ("speculation", 70.0),
-            ("bubble", 90.0),
+            ("cold", 10.0, -5.0),
+            ("early", 30.0, 2.0),
+            ("rising", 50.0, 7.0),
+            ("speculation", 70.0, 12.0),
+            ("bubble", 90.0, 20.0),
         ],
     )
-    def test_status_renders(self, status: str, index: float, tmp_path: Path) -> None:
-        result = _make_result(status=status, index=index)
-        png_path, _ = render(result, output_dir=tmp_path)
-        assert png_path.exists()
-        img = Image.open(png_path)
-        assert img.size == (IMAGE_WIDTH, IMAGE_HEIGHT)
+    def test_status_renders_all_cards(
+        self, status: str, index: float, delta: float, tmp_path: Path
+    ) -> None:
+        result = _make_result(status=status, index=index, week_delta=delta)
+        idx, drv, cool, wkly, _ = render(result, output_dir=tmp_path)
+        for p in (idx, drv, cool, wkly):
+            assert p.exists()
+            img = Image.open(p)
+            assert img.size == (IMAGE_WIDTH, IMAGE_HEIGHT)
 
 
 # ---------------------------------------------------------------------------
@@ -184,10 +247,10 @@ class TestAllStatuses:
 def test_save_fixture_for_visual_inspection() -> None:
     """Generate a real render into fixtures/output/ for manual review.
 
-    Not a strict assertion test — just ensures the file is produced.
+    Not a strict assertion test — just ensures all four cards are produced.
     """
     FIXTURE_OUTPUT.mkdir(parents=True, exist_ok=True)
-    result = _make_result(status="speculation", index=67.0, warming_up=False)
-    png_path, txt_path = render(result, output_dir=FIXTURE_OUTPUT)
-    assert png_path.exists()
-    assert txt_path.exists()
+    result = _make_result(status="rising", index=51.0, warming_up=False, week_delta=7.3)
+    idx, drv, cool, wkly, txt = render(result, output_dir=FIXTURE_OUTPUT)
+    for p in (idx, drv, cool, wkly, txt):
+        assert p.exists()

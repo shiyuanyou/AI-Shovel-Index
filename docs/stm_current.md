@@ -100,8 +100,44 @@
 - [x] `pytest tests/ -v` 全部通过（40/40）
 - [x] `black . --line-length 100 --check` 无报错
 - [x] `ruff check .` 无报错
-- [x] `mypy . --ignore-missing-imports` 无 error 级别报错
+- [x] `mypy . --ignore-missing-imports` 无 error 级别报报错
 - [ ] GitHub Actions 手动触发一次，artifact 可下载验证
+
+---
+
+## Phase 5：4 卡片视觉重设计
+
+**版本目标**：将单张大图拆成 4 张 1080×1080 社交媒体卡片，每张聚焦单一信息，提升可读性和传播性。
+
+**创建时间**：2026-03-06
+**当前状态**：BUILD 阶段
+
+### 卡片定义
+
+| 编号 | 文件 | 内容 |
+|------|------|------|
+| Card 1 | `card_index.html` | 核心指数 + 大仪表盘 + week_delta |
+| Card 2 | `card_drivers.html` | Top 4 驱动因素排行榜 |
+| Card 3 | `card_cooling.html` | 退热信号排行榜 |
+| Card 4 | `card_weekly.html` | Weekly Brief 叙述摘要 |
+
+### 任务列表
+
+- [x] `config.py` — 新增 `AUTHOR_HANDLE = "@yoyoostone"` 常量
+- [x] `analyzer.py` / `config.py` — `AnalysisResult` 新增 `week_delta: float` 字段（今日 index 与7天前 index 的差值）
+- [x] `analyzer.py` — `compute_index()` 计算并填充 `week_delta`
+- [x] `templates/card_index.html` — Card 1：大仪表盘，超大数字，week_delta，@yoyoostone
+- [x] `templates/card_drivers.html` — Card 2：Top 4 驱动词，大字体进度条
+- [x] `templates/card_cooling.html` — Card 3：退热词列表，红色强调
+- [x] `templates/card_weekly.html` — Card 4：叙述摘要，新铲子 + 退热铲子自然语言描述
+- [x] `renderer.py` — `render()` 截图 4 张，返回 `tuple[Path, Path, Path, Path, Path]`
+- [x] `tests/test_analyzer.py` — 补充 `week_delta` 验证用例（4项）
+- [x] `tests/test_renderer.py` — 更新断言（4 PNG + 1 txt，尺寸 1080×1080）
+- [x] `preview_all.py` — 修复 `AnalysisResult` 构造（新增 `week_delta` 字段）
+- [x] `run_daily.py` — 更新解包逻辑（5 返回值）
+- [x] 废弃 `templates/card.html`（保留文件但不再被 renderer 引用）
+
+**验收标准**：`pytest tests/ -v` 全部通过 ✅ 2026-03-06（50/50）；black/ruff/mypy 全部清洁。
 
 ---
 
@@ -114,4 +150,5 @@
 | 2026-03-06 | 风格参考苹果发布会 PPT | 深色+精准数据展示，高辨识度 |
 | 2026-03-06 | 存储用 SQLite | 单文件，无服务器依赖，结构化查询简单 |
 | 2026-03-06 | data/index.db 纳入 git 追踪 | GitHub Actions 需跨 run 累积历史数据；journal/wal 仍忽略 |
-| 2026-03-06 | 图片尺寸改为 1200×1200 正方形 | 社交媒体正方形格式适配更广；Top Drivers/Cooling 两栏新信息架构需垂直空间 |
+| 2026-03-06 | 图片尺寸改为 1080×1080，拆为4张卡片 | 单卡信息聚焦，提升社交媒体传播性；1080×1080 是 Instagram/小红书 标准正方形尺寸 |
+| 2026-03-06 | 页脚品牌改为 @yoyoostone | 与创作者社媒账号一致 |
