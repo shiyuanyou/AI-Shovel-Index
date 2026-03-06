@@ -1,0 +1,36 @@
+# Runtime data — never commit DB or generated output
+data/
+output/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test artifacts (keep fixtures/output for visual inspection during dev,
+# but exclude from repo to avoid binary bloat)
+tests/fixtures/output/*.png
+tests/fixtures/output/*.txt
+
+# Editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Playwright browser binaries (installed via `playwright install`)
+# These live in ~/.cache/ms-playwright, not in the project dir,
+# but guard against accidental inclusion if a custom path is set.
+playwright-browsers/
