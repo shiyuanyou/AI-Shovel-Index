@@ -19,7 +19,7 @@ The current product shape is still intentionally small:
 | Storage | SQLite `data/index.db` | Single local DB file |
 | Analysis | Python stdlib | Pure calculation layer |
 | Rendering | Jinja2 + Playwright screenshot | Inline HTML/CSS rendered to PNG |
-| Automation | GitHub Actions now | Cloud cron or server scheduler is the next target |
+| Automation | GitHub Actions + smoke path | CI uses project-local `.venv`; workflow_dispatch can run a smoke render |
 | Quality | pytest + black + ruff + mypy | Required before shipping changes |
 
 ## Current Directory Layout
@@ -32,6 +32,7 @@ AI-Shovel-Index/
 ├── crawler.py
 ├── preview_all.py
 ├── renderer.py
+├── smoke_test.py
 ├── run_daily.py
 ├── requirements.txt
 ├── package.json
@@ -101,6 +102,11 @@ Modules communicate through `TypedDict` objects defined in `config.py`.
 ### `run_daily.py`
 - orchestrates crawl -> save -> analyze -> render
 - is the main batch entry point for local runs and CI
+
+### `smoke_test.py`
+- renders a fixed sample `AnalysisResult` without crawling live data
+- verifies that Playwright Chromium and output writing work in a deployment environment
+- is intended for first-run server checks and optional CI smoke execution
 
 ## Shared Data Contracts
 
@@ -191,9 +197,9 @@ The project is production-like in workflow, but not yet fully deployment-hardene
 - SQLite history is preserved in-repo through committed `data/index.db`.
 - Runtime defaults now use UTC date strings for scheduled batch execution.
 - Renderer now validates required templates and expected output files before returning success.
+- The workflow now installs dependencies into a project-local `.venv` and supports a manual smoke-test mode.
 
 ### Known Deployment Gaps
-- CI still contains a legacy Node/Tailwind step that is no longer needed for active templates
 - font consistency on Linux servers is not guaranteed yet
 - SQLite still assumes a single-writer batch deployment even though journal mode is now forced to `DELETE`
 

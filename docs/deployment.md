@@ -69,6 +69,15 @@ Before production deployment, verify that rendered screenshots display Chinese c
 .venv/bin/python3 run_daily.py --date 2026-03-06
 ```
 
+### Deployment smoke test
+```bash
+.venv/bin/python3 smoke_test.py
+```
+
+Use this on a fresh server before the first scheduled run. It skips crawling and
+verifies that Python, Playwright Chromium, templates, and writable output paths
+can still produce all three cards plus `post.txt`.
+
 ### Crawl dry run
 ```bash
 .venv/bin/python3 crawler.py --keyword "AI 副业" --dry-run
@@ -106,6 +115,7 @@ Prefer this if you want better logs, restart behavior, and clearer service owner
 - [ ] Playwright Chromium installed successfully
 - [ ] Linux dependencies installed successfully
 - [ ] Chinese fonts render correctly in screenshots
+- [ ] `.venv/bin/python3 smoke_test.py` succeeds
 - [ ] `data/` and `output/` are writable
 - [ ] one manual `run_daily.py` execution succeeds
 - [ ] output PNGs and `post.txt` look correct on the server
@@ -113,9 +123,16 @@ Prefer this if you want better logs, restart behavior, and clearer service owner
 ## Current Known Gaps
 
 These are not blockers for local testing, but should be addressed before long-term unattended deployment:
-- CI still contains a legacy Node/Tailwind step unrelated to the active 3-card renderer
 - SQLite still relies on a single-writer deployment assumption even though journal mode is now pinned to `DELETE`
 - overlapping scheduled runs are still not explicitly locked yet
+
+## GitHub Actions Notes
+
+The current `daily.yml` workflow now matches the repo conventions more closely:
+- it creates a project-local `.venv`
+- it installs Python dependencies into that `.venv`
+- it installs Playwright with `.venv/bin/python3` and `.venv/bin/playwright`
+- manual dispatch can choose `pipeline` or `smoke` mode for quick server verification
 
 ## What Not To Deploy Yet
 

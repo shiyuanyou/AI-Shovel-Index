@@ -3,8 +3,8 @@
 Entry point for both local runs and GitHub Actions.
 
 CLI usage:
-    python3 run_daily.py                  # run for today
-    python3 run_daily.py --date 2026-03-06  # backfill a specific date
+    .venv/bin/python3 run_daily.py                  # run for today
+    .venv/bin/python3 run_daily.py --date 2026-03-06  # backfill a specific date
 """
 
 import argparse

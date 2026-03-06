@@ -3,7 +3,7 @@
 **Version goal**: stabilize the project for cloud deployment, remove current doc and workflow drift, and reduce the chance of hidden failures in the daily batch pipeline.
 
 **Created**: 2026-03-06  
-**Current status**: PLAN
+**Current status**: BUILD
 
 ## Current Diagnosis
 
@@ -28,9 +28,9 @@
 
 ## Phase 3: CI And Delivery Simplification
 
-- [ ] Remove legacy Node/Tailwind steps from `.github/workflows/daily.yml` unless a task explicitly uses `templates/card.html`
-- [ ] Align CI commands with repo conventions by using `.venv` or document why CI intentionally differs
-- [ ] Add a deployment smoke test path for server verification
+- [x] Remove legacy Node/Tailwind steps from `.github/workflows/daily.yml` unless a task explicitly uses `templates/card.html`
+- [x] Align CI commands with repo conventions by using `.venv` or document why CI intentionally differs
+- [x] Add a deployment smoke test path for server verification
 
 ## Phase 4: Operability
 

@@ -6,6 +6,14 @@ on:
     - cron: "0 2 * * *"
   workflow_dispatch:
     inputs:
+      mode:
+        description: "Execution mode"
+        required: true
+        default: "pipeline"
+        type: choice
+        options:
+          - pipeline
+          - smoke
       date:
         description: "Override date (YYYY-MM-DD). Leave blank for today."
         required: false
@@ -30,37 +38,32 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
-      # ── Python dependencies ─────────────────────────────────────────────
+      # ── Local virtualenv + Python dependencies ─────────────────────────
+      - name: Create project virtualenv
+        run: python -m venv .venv
+
       - name: Install Python dependencies
-        run: python -m pip install -r requirements.txt
-
-      # ── Node.js + Tailwind CSS build ────────────────────────────────────
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install Node dependencies
-        run: npm ci
-
-      - name: Build Tailwind CSS
-        run: npm run build:css
+        run: |
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r requirements.txt
 
       # ── Playwright system deps + browser ────────────────────────────────
       - name: Install Playwright system dependencies
-        run: python -m playwright install-deps chromium
+        run: .venv/bin/python3 -m playwright install-deps chromium
 
       - name: Install Playwright Chromium browser
-        run: python -m playwright install chromium
+        run: .venv/bin/playwright install chromium
 
-      # ── Run pipeline ────────────────────────────────────────────────────
+      # ── Run pipeline or smoke test ──────────────────────────────────────
       - name: Run daily pipeline
         run: |
-          if [ -n "${{ github.event.inputs.date }}" ]; then
-            python run_daily.py --date "${{ github.event.inputs.date }}"
+          MODE="${{ github.event.inputs.mode || 'pipeline' }}"
+          if [ "$MODE" = "smoke" ]; then
+            .venv/bin/python3 smoke_test.py
+          elif [ -n "${{ github.event.inputs.date }}" ]; then
+            .venv/bin/python3 run_daily.py --date "${{ github.event.inputs.date }}"
           else
-            python run_daily.py
+            .venv/bin/python3 run_daily.py
           fi
 
       # ── Upload output as artifact ────────────────────────────────────────
@@ -74,6 +77,7 @@ jobs:
       # ── Commit data/index.db back to repo ────────────────────────────────
       # This preserves the historical crawl data across runs.
       - name: Commit updated DB
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.mode != 'smoke' }}
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
