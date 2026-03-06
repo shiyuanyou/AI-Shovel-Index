@@ -19,7 +19,7 @@ The current product shape is still intentionally small:
 | Storage | SQLite `data/index.db` | Single local DB file |
 | Analysis | Python stdlib | Pure calculation layer |
 | Rendering | Jinja2 + Playwright screenshot | Inline HTML/CSS rendered to PNG |
-| Automation | GitHub Actions + smoke path | CI uses project-local `.venv`; workflow_dispatch can run a smoke render |
+| Automation | GitHub Actions, systemd, or Docker-hosted batch | CI uses project-local `.venv`; VPS can run native or Dockerized batch jobs |
 | Quality | pytest + black + ruff + mypy | Required before shipping changes |
 
 ## Current Directory Layout
@@ -27,10 +27,13 @@ The current product shape is still intentionally small:
 ```text
 AI-Shovel-Index/
 ├── AGENTS.md
+├── .dockerignore
+├── Dockerfile
 ├── analyzer.py
 ├── config.py
 ├── crawler.py
 ├── deploy/
+│   ├── docker/
 │   ├── systemd/
 │   └── vps/
 ├── preview_all.py
@@ -204,6 +207,7 @@ The project is production-like in workflow, but not yet fully deployment-hardene
 - The workflow now installs dependencies into a project-local `.venv` and supports a manual smoke-test mode.
 - `run_daily.py` now logs crawl health ratios and structured step summaries to stdout for easier cloud diagnosis.
 - a repo-local VPS deployment kit now exists under `deploy/vps/` and `deploy/systemd/`
+- a repo-local Docker deployment kit now exists under `Dockerfile`, `.dockerignore`, and `deploy/docker/`
 
 ### Known Deployment Gaps
 - font consistency on Linux servers is not guaranteed yet
@@ -214,6 +218,7 @@ The project is production-like in workflow, but not yet fully deployment-hardene
 
 - first deployment target: Ubuntu VPS with a systemd timer
 - persistence strategy: use server-local `data/index.db` for cloud deployment; keep git-backed DB commits only as a transitional GitHub Actions behavior
+- optimized upgrade path: run the batch inside a Docker image while keeping scheduling on the VPS host via systemd
 
 ## Deployment Refactor Direction
 

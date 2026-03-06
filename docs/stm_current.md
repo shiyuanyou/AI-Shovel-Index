@@ -50,3 +50,10 @@
 - [x] Add a repo-local Ubuntu VPS bootstrap script
 - [x] Add systemd service and timer templates for the recommended deployment target
 - [x] Add a step-by-step VPS deployment README tied to this project
+
+## Docker Deployment Kit
+
+- [x] Add a project Dockerfile and `.dockerignore`
+- [x] Add a Docker Compose deployment path with bind-mounted persistence
+- [x] Add Docker-oriented VPS bootstrap and systemd timer templates
+- [x] Add a project-specific Docker deployment README with upgrade and rollback guidance

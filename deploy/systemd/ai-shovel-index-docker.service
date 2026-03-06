@@ -1,0 +1,24 @@
+[Unit]
+Description=AI Shovel Index daily batch in Docker
+Wants=docker.service network-online.target
+After=docker.service network-online.target
+ConditionPathExists=__APP_DIR__/deploy/docker/compose.yml
+
+[Service]
+Type=oneshot
+User=__APP_USER__
+Group=docker
+WorkingDirectory=__APP_DIR__/deploy/docker
+ExecStart=/usr/bin/docker compose --env-file .env -f compose.yml run --rm ai-shovel-index
+Nice=10
+IOSchedulingClass=best-effort
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=__APP_DIR__/runtime
+StandardOutput=journal
+StandardError=inherit
+TimeoutStartSec=45min
+
+[Install]
+WantedBy=multi-user.target

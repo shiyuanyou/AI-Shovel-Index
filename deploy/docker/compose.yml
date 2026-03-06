@@ -1,0 +1,28 @@
+services:
+  ai-shovel-index:
+    image: ${AI_SHOVEL_IMAGE:-ai-shovel-index}:${AI_SHOVEL_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    working_dir: /app
+    environment:
+      PYTHONUNBUFFERED: "1"
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ${AI_SHOVEL_DATA_DIR}:/app/data
+      - ${AI_SHOVEL_OUTPUT_DIR}:/app/output
+    command: ["python", "run_daily.py"]
+
+  ai-shovel-smoke:
+    image: ${AI_SHOVEL_IMAGE:-ai-shovel-index}:${AI_SHOVEL_TAG:-latest}
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    working_dir: /app
+    environment:
+      PYTHONUNBUFFERED: "1"
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ${AI_SHOVEL_DATA_DIR}:/app/data
+      - ${AI_SHOVEL_OUTPUT_DIR}:/app/output
+    command: ["python", "smoke_test.py", "--output-dir", "/app/output/smoke"]

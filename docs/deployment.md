@@ -7,6 +7,9 @@ For the current architecture, the safest first deployment target is a single Lin
 Decision: the first supported deployment target is `Ubuntu VPS + systemd timer`.
 Cron remains acceptable for simple setups, but systemd is the preferred default because it gives clearer ownership, restart behavior, and logs.
 
+Optimized variant: `Ubuntu VPS + Docker Compose + systemd timer`.
+This keeps scheduling and observability on the host, while moving the crawler and renderer runtime into a versioned container image that is easier to upgrade and roll back.
+
 Recommended order of simplicity:
 1. Ubuntu VPS + cron or systemd timer
 2. Docker container on a single VPS
@@ -25,6 +28,11 @@ Why this is the best first step:
 - Linux system libraries required by Playwright
 - writable `data/` and `output/` directories
 - Chinese-capable fonts available to Chromium
+
+For the Docker path, the equivalent runtime requirements move into the image build:
+- Docker Engine + Compose plugin on the host
+- bind-mounted host directories for persistent `data/` and `output/`
+- image tags or registry naming if you want explicit rollback targets
 
 ## Server Setup
 
@@ -133,6 +141,26 @@ Recommended flow:
 3. run one manual `smoke_test.py` and one manual `run_daily.py`
 4. enable `ai-shovel-index.timer`
 
+### Option C: Docker Compose + systemd timer
+Use this when you want easier upgrades, image-tag rollbacks, and a cleaner runtime boundary.
+
+Repo-ready assets are now available for this path:
+- `Dockerfile`
+- `.dockerignore`
+- `deploy/docker/compose.yml`
+- `deploy/docker/.env.example`
+- `deploy/docker/README.md`
+- `deploy/docker/refresh_image.sh`
+- `deploy/vps/bootstrap_ubuntu_docker_host.sh`
+- `deploy/systemd/ai-shovel-index-docker.service`
+- `deploy/systemd/ai-shovel-index-docker.timer`
+
+Recommended flow:
+1. run `deploy/vps/bootstrap_ubuntu_docker_host.sh` on the server
+2. review `deploy/docker/.env`
+3. run one manual Docker smoke test and one manual Docker pipeline run
+4. install and enable `ai-shovel-index-docker.timer`
+
 ## Persistence Decision
 
 For cloud deployment, `data/index.db` should move to server-local persistence and stop being treated as a git-synchronized artifact.
@@ -147,6 +175,7 @@ Why this is the chosen direction:
 - server-local persistence avoids mixing runtime state with source-control history
 - it removes an unnecessary dependency on git credentials during batch execution
 - it fits the current single-host deployment model better than DB-in-repo synchronization
+- Docker deployments should keep this same rule by bind-mounting host persistence into the container
 
 ## Pre-Deploy Checklist
 
@@ -176,6 +205,16 @@ The current `daily.yml` workflow now matches the repo conventions more closely:
 - manual dispatch can choose `pipeline` or `smoke` mode for quick server verification
 - runtime logs now surface crawl degradation in stdout instead of only listing zero-value keywords
 - its `data/index.db` commit step should be treated as a transition path, not the long-term cloud persistence model
+
+## Docker Notes
+
+The Docker path intentionally keeps scheduling on the host instead of embedding cron inside the container.
+
+Why:
+- the app is a single daily batch job, not a long-running service
+- host `systemd` remains a simpler source of truth for scheduling and logs
+- container images become easier to rebuild, retag, and roll back independently of the timer
+- bind-mounted persistence keeps `data/index.db` and `output/` outside the image lifecycle
 
 ## What Not To Deploy Yet
 
