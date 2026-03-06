@@ -204,13 +204,18 @@ The project is production-like in workflow, but not yet fully deployment-hardene
 ### Known Deployment Gaps
 - font consistency on Linux servers is not guaranteed yet
 - SQLite still assumes a single-writer batch deployment even though journal mode is now forced to `DELETE`
-- long-term persistence strategy for `data/index.db` is still undecided outside the current git-backed workflow
+- overlapping scheduled runs still need explicit protection on server deployments
+
+## Deployment Decisions
+
+- first deployment target: Ubuntu VPS with a systemd timer
+- persistence strategy: use server-local `data/index.db` for cloud deployment; keep git-backed DB commits only as a transitional GitHub Actions behavior
 
 ## Deployment Refactor Direction
 
 Before moving from GitHub Actions to a cloud server, prefer this sequence:
 1. simplify CI to the active renderer path only
-2. decide whether SQLite remains git-backed or moves to server-local persistence
+2. remove git-backed DB persistence once the server scheduler becomes the primary runtime
 3. add explicit single-run protection if the deployment scheduler can overlap jobs
 4. document server prerequisites for Playwright, fonts, and writable storage
 

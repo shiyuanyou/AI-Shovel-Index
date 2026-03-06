@@ -17,7 +17,7 @@
 - [x] Refactor `AGENTS.md` into a concise, current workspace instruction file
 - [x] Sync `docs/architecture.md` to the actual 3-card pipeline and current runtime assumptions
 - [x] Add a dedicated deployment guide covering Python, Playwright, fonts, writable directories, and scheduler expectations
-- [ ] Decide the first deployment target: GitHub Actions only, VPS cron, Docker container, or managed cloud runtime
+- [x] Decide the first deployment target: GitHub Actions only, VPS cron, Docker container, or managed cloud runtime
 
 ## Phase 2: Runtime Hardening
 
@@ -36,7 +36,7 @@
 
 - [x] Add crawler failure threshold warnings so systemic crawl breakage is visible quickly
 - [x] Review logging for cloud execution and make sure failures are easy to diagnose from stdout logs
-- [ ] Decide whether `data/index.db` should keep being committed to git or move to server persistence
+- [x] Decide whether `data/index.db` should keep being committed to git or move to server persistence
 
 ## Acceptance Criteria
 

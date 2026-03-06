@@ -4,6 +4,9 @@
 
 For the current architecture, the safest first deployment target is a single Linux server running one scheduled batch job.
 
+Decision: the first supported deployment target is `Ubuntu VPS + systemd timer`.
+Cron remains acceptable for simple setups, but systemd is the preferred default because it gives clearer ownership, restart behavior, and logs.
+
 Recommended order of simplicity:
 1. Ubuntu VPS + cron or systemd timer
 2. Docker container on a single VPS
@@ -118,6 +121,21 @@ Example cron for 10:00 Beijing time on a UTC server:
 ### Option B: systemd timer
 Prefer this if you want better logs, restart behavior, and clearer service ownership than cron.
 
+## Persistence Decision
+
+For cloud deployment, `data/index.db` should move to server-local persistence and stop being treated as a git-synchronized artifact.
+
+Use this rule going forward:
+- GitHub Actions may continue committing `data/index.db` while it remains the temporary hosted scheduler
+- VPS or other cloud server deployments should keep `data/index.db` on local disk or attached persistent storage
+- do not rely on git push/pull as the primary persistence mechanism once the batch runs on a server
+
+Why this is the chosen direction:
+- SQLite is designed for local single-writer storage
+- server-local persistence avoids mixing runtime state with source-control history
+- it removes an unnecessary dependency on git credentials during batch execution
+- it fits the current single-host deployment model better than DB-in-repo synchronization
+
 ## Pre-Deploy Checklist
 
 - [ ] `docs/architecture.md` matches the real pipeline
@@ -145,6 +163,7 @@ The current `daily.yml` workflow now matches the repo conventions more closely:
 - it installs Playwright with `.venv/bin/python3` and `.venv/bin/playwright`
 - manual dispatch can choose `pipeline` or `smoke` mode for quick server verification
 - runtime logs now surface crawl degradation in stdout instead of only listing zero-value keywords
+- its `data/index.db` commit step should be treated as a transition path, not the long-term cloud persistence model
 
 ## What Not To Deploy Yet
 
