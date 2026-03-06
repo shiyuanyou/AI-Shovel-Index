@@ -21,10 +21,10 @@
 
 ## Phase 2: Runtime Hardening
 
-- [ ] Make runtime date handling explicit and timezone-safe across `crawler.py`, `analyzer.py`, and `run_daily.py`
-- [ ] Define and implement the SQLite journal/concurrency strategy for single-run scheduling
-- [ ] Add clear render output validation so partial PNG generation fails fast
-- [ ] Add startup validation for required templates and critical directories
+- [x] Make runtime date handling explicit and timezone-safe across `crawler.py`, `analyzer.py`, and `run_daily.py`
+- [x] Define and implement the SQLite journal/concurrency strategy for single-run scheduling
+- [x] Add clear render output validation so partial PNG generation fails fast
+- [x] Add startup validation for required templates and critical directories
 
 ## Phase 3: CI And Delivery Simplification
 

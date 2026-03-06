@@ -16,7 +16,6 @@ import asyncio
 import logging
 import random
 import sqlite3
-from datetime import date
 from typing import Union
 
 from playwright.async_api import Browser, Page, async_playwright
@@ -26,6 +25,7 @@ from config import (
     KEYWORDS,
     get_db,
     init_db,
+    utc_today_str,
 )
 
 logger = logging.getLogger(__name__)
@@ -152,7 +152,7 @@ async def _fetch_keyword_async(keyword: str, browser: Browser) -> CrawlRecord:
     Returns:
         CrawlRecord for today's date. On any error, returns a zero-record.
     """
-    today = date.today().isoformat()
+    today = utc_today_str()
     ua = random.choice(_USER_AGENTS)
 
     context = await browser.new_context(
@@ -266,7 +266,7 @@ def crawl_all(
     Returns:
         List of CrawlRecord, one per keyword (zero-filled on failure).
     """
-    td = target_date or date.today().isoformat()
+    td = target_date or utc_today_str()
     return asyncio.run(_crawl_all_async(td, keywords))
 
 
@@ -340,7 +340,7 @@ if __name__ == "__main__":
     args = _build_arg_parser().parse_args()
 
     kw_list = [args.keyword] if args.keyword else None
-    target = args.date or date.today().isoformat()
+    target = args.date or utc_today_str()
 
     logger.info("Starting crawl for date=%s, dry_run=%s", target, args.dry_run)
     records = crawl_all(target_date=target, keywords=kw_list)

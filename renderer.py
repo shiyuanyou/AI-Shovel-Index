@@ -22,6 +22,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from playwright.async_api import async_playwright
 
 from config import (
+    ACTIVE_TEMPLATE_NAMES,
     AUTHOR_HANDLE,
     AnalysisResult,
     DailyRankingEntry,
@@ -263,6 +264,24 @@ async def _render_all_cards(
         await browser.close()
 
 
+def _validate_required_templates() -> None:
+    """Ensure the active card templates exist before launching Chromium."""
+    missing = [name for name in ACTIVE_TEMPLATE_NAMES if not (TEMPLATES_DIR / name).exists()]
+    if missing:
+        raise FileNotFoundError(f"Missing template file(s): {', '.join(missing)}")
+
+
+def _validate_render_outputs(paths: list[Path]) -> None:
+    """Ensure rendered output files exist and are non-empty."""
+    missing = [str(path) for path in paths if not path.exists()]
+    if missing:
+        raise RuntimeError(f"Render completed with missing output file(s): {', '.join(missing)}")
+
+    empty = [str(path) for path in paths if path.stat().st_size == 0]
+    if empty:
+        raise RuntimeError(f"Render completed with empty output file(s): {', '.join(empty)}")
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -291,6 +310,7 @@ def render(
     """
     out_dir = output_dir or OUTPUT_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
+    _validate_required_templates()
 
     date_slug = result["date"].replace("-", "_")
     index_png = out_dir / f"card1_index_{date_slug}.png"
@@ -325,6 +345,7 @@ def render(
 
     # Write social post text
     _write_post(result, txt_path)
+    _validate_render_outputs([index_png, daily_png, weekly_png, txt_path])
 
     return index_png, daily_png, weekly_png, txt_path
 

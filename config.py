@@ -4,7 +4,9 @@ Centralizes all configuration so other modules never hardcode paths,
 keywords, or weights. Also owns the DB schema and init routine.
 """
 
+import os
 import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TypedDict
 
@@ -17,6 +19,11 @@ DATA_DIR: Path = ROOT_DIR / "data"
 OUTPUT_DIR: Path = ROOT_DIR / "output"
 TEMPLATES_DIR: Path = ROOT_DIR / "templates"
 DB_PATH: Path = DATA_DIR / "index.db"
+ACTIVE_TEMPLATE_NAMES: tuple[str, str, str] = (
+    "card_index.html",
+    "card_drivers.html",
+    "card_cooling.html",
+)
 
 # ---------------------------------------------------------------------------
 # Keywords to crawl
@@ -73,6 +80,8 @@ STATUS_COLORS: dict[str, str] = {
     "speculation": "#ff6b35",
     "bubble": "#ff2d55",
 }
+
+SQLITE_JOURNAL_MODE: str = "DELETE"
 
 # ---------------------------------------------------------------------------
 # TypedDicts — shared data contracts between modules
@@ -139,9 +148,9 @@ def init_db() -> None:
 
     Safe to call multiple times — uses CREATE TABLE IF NOT EXISTS.
     """
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    ensure_runtime_dirs()
     with sqlite3.connect(DB_PATH) as conn:
+        conn.execute(f"PRAGMA journal_mode={SQLITE_JOURNAL_MODE}")
         conn.executescript(DB_SCHEMA)
         conn.commit()
 
@@ -151,7 +160,31 @@ def get_db() -> sqlite3.Connection:
 
     Callers are responsible for closing the connection (use as context manager).
     """
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
+    ensure_runtime_dirs()
+    conn = sqlite3.connect(DB_PATH, timeout=30.0)
+    conn.execute(f"PRAGMA journal_mode={SQLITE_JOURNAL_MODE}")
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def utc_today_str() -> str:
+    """Return today's date in UTC as an ISO-8601 YYYY-MM-DD string."""
+    return datetime.now(timezone.utc).date().isoformat()
+
+
+def ensure_runtime_dirs() -> None:
+    """Create runtime directories used by the daily pipeline if missing."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def validate_runtime_environment() -> None:
+    """Fail fast when required runtime directories are not writable.
+
+    The project is designed as a batch job that writes to local SQLite and
+    output files, so both directories must exist and support write access.
+    """
+    ensure_runtime_dirs()
+    for path in (DATA_DIR, OUTPUT_DIR):
+        if not os.access(path, os.W_OK):
+            raise PermissionError(f"Runtime directory is not writable: {path}")

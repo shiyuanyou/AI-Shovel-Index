@@ -113,10 +113,9 @@ Prefer this if you want better logs, restart behavior, and clearer service owner
 ## Current Known Gaps
 
 These are not blockers for local testing, but should be addressed before long-term unattended deployment:
-- runtime date handling is still based on local machine date
-- SQLite concurrency protections are still minimal
-- renderer does not yet validate all expected outputs before returning
 - CI still contains a legacy Node/Tailwind step unrelated to the active 3-card renderer
+- SQLite still relies on a single-writer deployment assumption even though journal mode is now pinned to `DELETE`
+- overlapping scheduled runs are still not explicitly locked yet
 
 ## What Not To Deploy Yet
 

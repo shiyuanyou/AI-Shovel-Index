@@ -10,10 +10,10 @@ CLI usage:
 import argparse
 import logging
 import sys
-from datetime import date
 
 from analyzer import analyze
 from crawler import crawl_all, save_records
+from config import validate_runtime_environment, utc_today_str
 from renderer import render
 
 logging.basicConfig(
@@ -35,6 +35,7 @@ def run(target_date: str) -> None:
     Args:
         target_date: Date string "YYYY-MM-DD" to process.
     """
+    validate_runtime_environment()
     logger.info("=== AI Shovel Index daily run — %s ===", target_date)
 
     # ── Step 1: Crawl ──────────────────────────────────────────────────────
@@ -95,7 +96,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 
 if __name__ == "__main__":
     args = _build_arg_parser().parse_args()
-    target = args.date or date.today().isoformat()
+    target = args.date or utc_today_str()
 
     try:
         run(target)

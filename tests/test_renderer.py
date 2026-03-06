@@ -18,6 +18,7 @@ from config import (
     IMAGE_WIDTH,
     RankingEntry,
 )
+import renderer
 from renderer import render
 
 # ---------------------------------------------------------------------------
@@ -98,6 +99,24 @@ class TestRenderOutputFiles:
         result = _make_result()
         for p in render(result, output_dir=tmp_path):
             assert isinstance(p, Path)
+
+    def test_missing_template_raises_file_not_found(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        result = _make_result()
+        monkeypatch.setattr(renderer, "TEMPLATES_DIR", Path("/definitely/missing/templates"))
+        with pytest.raises(FileNotFoundError, match="Missing template"):
+            render(result, output_dir=FIXTURE_OUTPUT)
+
+    def test_missing_png_output_raises_runtime_error(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        result = _make_result()
+
+        async def _no_op_render(_templates: list[tuple[str, dict, Path]]) -> None:
+            return None
+
+        monkeypatch.setattr(renderer, "_render_all_cards", _no_op_render)
+        with pytest.raises(RuntimeError, match="missing output file"):
+            render(result, output_dir=tmp_path)
 
 
 # ---------------------------------------------------------------------------

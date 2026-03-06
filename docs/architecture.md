@@ -189,21 +189,20 @@ The project is production-like in workflow, but not yet fully deployment-hardene
 - GitHub Actions can schedule daily runs.
 - Playwright-based crawl and render are already integrated.
 - SQLite history is preserved in-repo through committed `data/index.db`.
+- Runtime defaults now use UTC date strings for scheduled batch execution.
+- Renderer now validates required templates and expected output files before returning success.
 
 ### Known Deployment Gaps
-- timezone handling is still local-date based in runtime code
-- SQLite concurrency safeguards are minimal
-- render failure validation is thin
 - CI still contains a legacy Node/Tailwind step that is no longer needed for active templates
 - font consistency on Linux servers is not guaranteed yet
+- SQLite still assumes a single-writer batch deployment even though journal mode is now forced to `DELETE`
 
 ## Deployment Refactor Direction
 
 Before moving from GitHub Actions to a cloud server, prefer this sequence:
-1. make date handling explicit and timezone-safe
-2. simplify CI to the active renderer path only
-3. harden SQLite usage for single-run scheduling
-4. validate renderer outputs and fail clearly
-5. document server prerequisites for Playwright, fonts, and writable storage
+1. simplify CI to the active renderer path only
+2. decide whether SQLite remains git-backed or moves to server-local persistence
+3. add explicit single-run protection if the deployment scheduler can overlap jobs
+4. document server prerequisites for Playwright, fonts, and writable storage
 
 These tasks are tracked in `docs/stm_current.md`.
