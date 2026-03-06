@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1200" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    background: #000000;
+    color: #ffffff;
+    font-family: -apple-system, "SF Pro Display", "PingFang SC", "Helvetica Neue",
+                 "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── subtle dot-grid background ── */
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  /* ── top accent line ── */
+  .top-line {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: {{ accent_color }};
+    opacity: 0.9;
+  }
+
+  /* ── main layout ── */
+  .layout {
+    position: relative;
+    display: flex;
+    width: 1200px;
+    height: 630px;
+    padding: 56px 60px 48px;
+    gap: 0;
+    z-index: 1;
+  }
+
+  /* ══════════════════ LEFT PANEL ══════════════════ */
+  .panel-left {
+    flex: 0 0 520px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-right: 52px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.38);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .date-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.04em;
+  }
+
+  /* score hero */
+  .score-block {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    margin: 20px 0 0;
+  }
+
+  .score-number {
+    font-size: 128px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: #ffffff;
+  }
+
+  .score-denom {
+    font-size: 28px;
+    font-weight: 500;
+    color: {{ accent_color }};
+    padding-bottom: 18px;
+    letter-spacing: 0.02em;
+  }
+
+  /* status pill */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+    padding: 8px 20px 8px 14px;
+    border-radius: 100px;
+    border: 1px solid {{ accent_color }};
+    background: {{ accent_color }}18;
+    width: fit-content;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: {{ accent_color }};
+    flex-shrink: 0;
+  }
+
+  .status-text {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: {{ accent_color }};
+    text-transform: uppercase;
+  }
+
+  /* warming-up notice */
+  .warming-up {
+    margin-top: 14px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.28);
+    letter-spacing: 0.03em;
+  }
+
+  /* tagline */
+  .tagline {
+    font-size: 11px;
+    color: rgba(255,255,255,0.22);
+    letter-spacing: 0.05em;
+    margin-top: auto;
+    padding-top: 20px;
+    line-height: 1.6;
+  }
+
+  /* ══════════════════ RIGHT PANEL ══════════════════ */
+  .panel-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-left: 52px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.30);
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  .rankings {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    flex: 1;
+  }
+
+  .rank-row {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .rank-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .rank-keyword {
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.90);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 240px;
+  }
+
+  .rank-pct {
+    font-size: 14px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+  }
+
+  .rank-pct.positive { color: {{ accent_color }}; }
+  .rank-pct.flat     { color: rgba(255,255,255,0.35); }
+  .rank-pct.negative { color: #ff453a; }
+
+  /* progress bar */
+  .bar-track {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.08);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    border-radius: 2px;
+    background: {{ accent_color }};
+    opacity: 0.75;
+    transition: none;
+  }
+
+  /* brand watermark bottom-right */
+  .watermark {
+    position: absolute;
+    bottom: 48px;
+    right: 60px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.14);
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="top-line"></div>
+
+  <div class="layout">
+
+    <!-- ── LEFT: Score hero ── -->
+    <div class="panel-left">
+      <div>
+        <div class="eyebrow">AI Shovel Index</div>
+        <div class="date-label">{{ date }}</div>
+
+        <div class="score-block">
+          <span class="score-number">{{ index_int }}</span>
+          <span class="score-denom">&thinsp;/ 100</span>
+        </div>
+
+        <div class="status-pill">
+          <div class="status-dot"></div>
+          <span class="status-text">{{ status }}</span>
+        </div>
+
+        {% if warming_up %}
+        <div class="warming-up">warming up &mdash; fewer than 7 days of data</div>
+        {% endif %}
+      </div>
+
+      <div class="tagline">
+        Tracking AI speculation cycles<br>via second-hand marketplace data
+      </div>
+    </div>
+
+    <!-- ── RIGHT: Keyword rankings ── -->
+    <div class="panel-right">
+      <div class="section-label">Keyword Growth</div>
+
+      <div class="rankings">
+        {% for entry in rankings %}
+        <div class="rank-row">
+          <div class="rank-meta">
+            <span class="rank-keyword">{{ entry.keyword }}</span>
+            <span class="rank-pct {% if entry.growth > 0.01 %}positive{% elif entry.growth < -0.01 %}negative{% else %}flat{% endif %}">
+              {{ entry.pct_str }}
+            </span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: {{ entry.bar_pct }}%;"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <div class="watermark">aishovelindex</div>
+
+</body>
+</html>

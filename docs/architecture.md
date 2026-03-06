@@ -8,7 +8,7 @@
 | 爬虫 | Playwright (async) | 无头 Chromium，模拟真实浏览器访问闲鱼 |
 | 存储 | SQLite (`data/index.db`) | 单文件，无需服务器，Git 可追踪 |
 | 分析 | 纯 Python stdlib | 无外部依赖，纯计算 |
-| 渲染 | Pillow | 手绘排版，苹果发布会风格（深色背景+白字） |
+| 渲染 | HTML + Playwright screenshot + Jinja2 | 截图 1200×630 PNG；CJK 字体由系统字体栈自动处理 |
 | 自动化 | GitHub Actions | cron `0 2 * * *`，UTC+0 每日 02:00 触发 |
 | 测试 | pytest | 单元测试覆盖 analyzer、renderer |
 | 格式化 | black (line=100) + ruff | 非协商，CI 强制 |
@@ -37,6 +37,9 @@ AI-Shovel-Index/
 │   │   └── output/        # 渲染测试输出（可视化验证）
 │   ├── test_analyzer.py
 │   └── test_renderer.py
+│
+├── templates/
+│   └── card.html          # Jinja2 HTML 模板（内联 CSS，深色 Apple Keynote 风格）
 │
 ├── .github/
 │   └── workflows/

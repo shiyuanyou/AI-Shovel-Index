@@ -15,6 +15,7 @@ from typing import TypedDict
 ROOT_DIR: Path = Path(__file__).parent
 DATA_DIR: Path = ROOT_DIR / "data"
 OUTPUT_DIR: Path = ROOT_DIR / "output"
+TEMPLATES_DIR: Path = ROOT_DIR / "templates"
 DB_PATH: Path = DATA_DIR / "index.db"
 
 # ---------------------------------------------------------------------------

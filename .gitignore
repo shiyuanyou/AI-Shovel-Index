@@ -1,5 +1,9 @@
-# Runtime data — never commit DB or generated output
-data/
+# Runtime data
+# DB is committed to repo so GitHub Actions can accumulate history across runs.
+# Output (PNG/txt) is ephemeral — uploaded as artifacts, not committed.
+data/*.db-journal
+data/*.db-shm
+data/*.db-wal
 output/
 
 # Python

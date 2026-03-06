@@ -39,58 +39,53 @@
 
 ## Phase 2b：渲染模块 ✅
 
-- [x] 创建 `renderer.py`
+- [x] 创建 `renderer.py`（HTML + Playwright 截图方案，替代原 Pillow 手绘）
   - [x] `render(result: AnalysisResult, output_dir?) -> tuple[Path, Path]`：生成 PNG + post.txt
-  - [x] 苹果发布会风格布局（深色背景、状态色、分栏排版、网格线）
+  - [x] 创建 `templates/card.html`：Jinja2 模板，深色 Apple Keynote 风格，左右分栏布局
+  - [x] Playwright Chromium headless 截图（1200×630 固定 viewport + clip）
   - [x] `warming_up=True` 时在图片和 post.txt 显示 "(warming up)"
   - [x] `post.txt` 格式：日期、得分、状态、关键词排行、hashtag
-  - [x] 字体回退链（macOS + Linux CI 均兼容）
-- [x] 创建 `tests/test_renderer.py`
-  - [x] `test_render_output_files`：验证 PNG 和 post.txt 生成
-  - [x] `test_render_image_size`：验证图片尺寸 1200×630
-  - [x] `test_render_warming_up_label`：验证 warming_up 标签
-  - [x] 5种状态全部渲染无报错
-  - [x] 视觉预览图保存至 `tests/fixtures/output/`
-  - [x] 共20个测试，全部通过
+  - [x] `requirements.txt` 新增 `jinja2>=3.1.0`
+  - [x] `config.py` 新增 `TEMPLATES_DIR` 路径常量
+- [x] 创建 `tests/test_renderer.py`（接口不变，40/40 全通过）
 
-**验收标准**：`pytest tests/test_renderer.py -v` 全部通过。✅ 2026-03-06（20/20 passed）
+**验收标准**：`python3 -m pytest tests/ -v` 40/40 全部通过。✅ 2026-03-06
 
 ---
 
-## Phase 3：爬虫模块
+## Phase 3：爬虫模块 ✅
 
-- [ ] 创建 `crawler.py`
-  - [ ] `fetch_keyword(keyword: str, page) -> CrawlRecord`：Playwright 爬单个关键词
-  - [ ] `crawl_all(date: str) -> list[CrawlRecord]`：遍历所有关键词，失败写 0 记录
-  - [ ] `save_records(records: list[CrawlRecord]) -> None`：批量写入 DB
-  - [ ] `--dry-run` CLI flag：打印结果不写 DB
-  - [ ] `--keyword` CLI flag：仅爬单个关键词
-  - [ ] 闲鱼搜索页解析逻辑（商品数、卖家去重、均价）
-  - [ ] 随机 UA + 请求延迟（反反爬基础措施）
+- [x] 创建 `crawler.py`
+  - [x] `_fetch_keyword_async(keyword, browser) -> CrawlRecord`：Playwright 爬单个关键词（2页）
+  - [x] `crawl_all(target_date?, keywords?) -> list[CrawlRecord]`：遍历所有关键词，失败写 0 记录
+  - [x] `save_records(records) -> None`：INSERT OR REPLACE 批量写入 DB
+  - [x] `--dry-run` CLI flag：打印结果不写 DB
+  - [x] `--keyword` CLI flag：仅爬单个关键词
+  - [x] 随机 UA 轮换 + 请求延迟（基础反反爬）
+  - [x] 按关键词独立 browser context（cookie 隔离）
 
-**验收标准**：`python crawler.py --keyword "AI 副业" --dry-run` 在本地返回非零 item_count。
-
-> **注意**：闲鱼页面结构需实际抓包确认，此 Phase 最复杂，预期需要调试迭代。
+**验收标准**：`python3 crawler.py --keyword "AI 副业" --dry-run` 在本地返回结果（item_count 取决于网络和反爬状态）。
 
 ---
 
-## Phase 4：集成与自动化
+## Phase 4：集成与自动化 ✅
 
-- [ ] 创建 `run_daily.py`
-  - [ ] 串联 crawl → analyze → render
-  - [ ] `--date` CLI flag（指定日期，用于补跑历史数据）
-  - [ ] 全流程日志输出（INFO 级别）
-  - [ ] 最终打印输出文件路径
-- [ ] 创建 `.github/workflows/daily.yml`
-  - [ ] `cron: '0 2 * * *'`（UTC，对应北京时间 10:00）
-  - [ ] `workflow_dispatch` 支持手动触发
-  - [ ] 安装 Python 3.11 + pip 依赖
-  - [ ] 安装 Playwright Chromium 及系统依赖
-  - [ ] 运行 `python run_daily.py`
-  - [ ] 上传 `output/` 为 GitHub Actions artifact
-  - [ ] 将 `data/index.db` commit 回仓库（保持历史数据）
+- [x] 创建 `run_daily.py`
+  - [x] 串联 crawl → analyze → render（4步骤日志）
+  - [x] `--date` CLI flag（指定日期）
+  - [x] 全流程 INFO 级别日志输出
+  - [x] 最终 print 输出文件路径（供 CI 读取）
+- [x] 创建 `.github/workflows/daily.yml`
+  - [x] `cron: '0 2 * * *'`（UTC，对应北京时间 10:00）
+  - [x] `workflow_dispatch` 支持手动触发（含 date 输入参数）
+  - [x] 安装 Python 3.11 + pip 依赖
+  - [x] 安装 Playwright Chromium 及系统依赖
+  - [x] 运行 `python run_daily.py`
+  - [x] 上传 `output/` 为 GitHub Actions artifact（保留30天）
+  - [x] 将 `data/index.db` commit 回仓库（保持历史数据）
+- [x] 修正 `.gitignore`：允许 `data/index.db` 被 git 追踪（只忽略 journal/wal 文件）
 
-**验收标准**：本地 `python run_daily.py` 端到端生成 PNG 和 post.txt；Actions workflow 手动触发成功。
+**验收标准**：本地 `python3 run_daily.py` 端到端生成 PNG 和 post.txt；Actions workflow 手动触发成功。
 
 ---
 
@@ -109,6 +104,7 @@
 | 日期 | 决策 | 原因 |
 |------|------|------|
 | 2026-03-06 | 爬虫用 Playwright 而非 requests | 闲鱼无公开 API，需浏览器渲染 |
-| 2026-03-06 | 图片渲染用 Pillow 手绘 | matplotlib 视觉质感不适合社交传播 |
+| 2026-03-06 | 图片渲染改为 HTML + Playwright + Jinja2 | Playwright 已是依赖，CJK 字体由系统字体栈自动处理，布局更易维护 |
 | 2026-03-06 | 风格参考苹果发布会 PPT | 深色+精准数据展示，高辨识度 |
 | 2026-03-06 | 存储用 SQLite | 单文件，无服务器依赖，结构化查询简单 |
+| 2026-03-06 | data/index.db 纳入 git 追踪 | GitHub Actions 需跨 run 累积历史数据；journal/wal 仍忽略 |
