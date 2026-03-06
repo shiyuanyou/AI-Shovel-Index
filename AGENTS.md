@@ -50,22 +50,23 @@ When user says "done", "bump", or "archive":
 # 3. Install Playwright Chromium browser
 .venv/bin/playwright install chromium
 
-# 4. Install Node / Tailwind CLI
-npm ci
-npm run build:css                         # compile templates/card.compiled.css
-
 # Activate once per shell session (optional, shortens commands)
 source .venv/bin/activate
 ```
 
 > **Note for cloud/CI**: on a fresh Linux host without conda, replace step 1 with:
 > `python3.12 -m venv .venv` (ensure Python 3.12 is installed first).
+>
+> **Node / Tailwind**: `npm ci` + `npm run build:css` are only needed if editing the legacy
+> `templates/card.html`. The active 4-card templates (`card_index.html` etc.) use pure inline
+> CSS and do **not** require a Node build step.
 
 ### Pipeline
 ```bash
 .venv/bin/python3 run_daily.py                      # full run: crawl → analyze → render
-.venv/bin/python3 run_daily.py --date 2026-03-06   # backfill a specific date
+.venv/bin/python3 run_daily.py --date 2026-03-06    # backfill a specific date
 .venv/bin/python3 crawler.py --keyword "AI 副业" --dry-run  # test crawl, no DB write
+.venv/bin/python3 preview_all.py                    # render all 4 cards × 5 scenarios to tests/fixtures/preview/
 ```
 
 ### Testing
@@ -99,11 +100,11 @@ source .venv/bin/activate
 ### Language & Compatibility
 - **Target**: Python 3.12 (local `.venv` and CI both use 3.12).
 - `X | Y` union syntax and `match` statements are fine — both require 3.10+, which 3.12 satisfies.
-- Still prefer `Union[X, Y]` / `List[...]` / `Dict[...]` only if you need the code to be readable by older tools; otherwise modern syntax is acceptable.
+- Prefer modern syntax (`list[str]`, `dict[str, int]`, `X | Y`) over legacy `List`/`Dict`/`Union`.
 
 ### Type Annotations
 - All public function signatures **must** have full annotations (params + return type).
-- All inter-module data structures are `TypedDict`s defined in `config.py`. Use them.
+- All inter-module data structures are `TypedDict`s defined in `config.py`. Use them — never pass raw dicts.
 - Never use `Any` unless unavoidable; add `# noqa: ANN401` with a justification comment.
 - Annotate local variables when mypy cannot infer the type (e.g., list/dict literals that hold mixed types).
 
@@ -149,14 +150,15 @@ No wildcard imports (`from x import *`).
 
 ### Data Flow
 ```
-crawler.py  →  DB (CrawlRecord)  →  analyzer.py  →  AnalysisResult  →  renderer.py  →  PNG + post.txt
+crawler.py  →  DB (CrawlRecord)  →  analyzer.py  →  AnalysisResult  →  renderer.py  →  4× PNG + post.txt
 ```
 Modules communicate **only** via `TypedDict` dicts. No shared global state. All TypedDicts live in `config.py`.
 
-### Key Types (see `config.py` for the canonical definitions)
+### Key Types (see `config.py` for canonical definitions)
 - `CrawlRecord` — one DB row per keyword per date; `item_count=0` signals a crawl failure.
-- `RankingEntry` — `{keyword, growth}` where `growth` is ratio vs 7-day baseline.
-- `AnalysisResult` — `{date, index, status, rankings, warming_up}`.
+- `RankingEntry` — `{keyword, growth}` where `growth` is ratio vs 7-day baseline; 1.0 = flat.
+- `AnalysisResult` — `{date, index, status, rankings, warming_up, week_delta}`.
+  - `week_delta: float` — today's index minus oldest-day index in the 7-day window; `0.0` when `warming_up=True`.
 
 ### Dates
 - Always `"YYYY-MM-DD"` strings. Never pass `datetime` objects between modules.
@@ -167,20 +169,35 @@ Modules communicate **only** via `TypedDict` dicts. No shared global state. All 
 - Never hardcode paths inside module logic.
 
 ### Renderer
-- `renderer.py` renders `templates/card.html` via Jinja2, screenshots with Playwright Chromium.
-- CSS is **compiled** by Tailwind CLI (`npm run build:css` → `templates/card.compiled.css`) and **inlined** at render time into a `<style>` tag — never linked via `<link href>` (Playwright `set_content()` has no base URL).
-- Keep `render(result, output_dir?)` signature stable; tests depend on it.
-- Image size: **1080×1080** px.
+- `renderer.py` renders 4 Jinja2 HTML templates via Playwright Chromium headless screenshot.
+- Templates use **pure inline CSS** — no external stylesheets, no `<link href>` tags.
+  (Playwright `set_content()` has no base URL; external links would 404.)
+- `render(result, output_dir?) -> tuple[Path, Path, Path, Path, Path]` — 4 PNGs + `post.txt`.
+- Output filenames: `card1_index_YYYY_MM_DD.png`, `card2_drivers_…`, `card3_cooling_…`, `card4_weekly_…`.
+- Image size: **1080×1080** px (social media 1:1 square).
+- Keep `render()` signature stable; tests depend on it.
+- Card text is in **Chinese** (中文). Do not add English UI strings to templates.
+- `AUTHOR_HANDLE = "@yoyoostone"` — defined in `config.py`; always read from there, never hardcode.
+
+### Templates (4 active cards + 1 legacy)
+| File | Card | Content |
+|------|------|---------|
+| `card_index.html` | 1 | 指数仪表盘、大数字、week_delta、@yoyoostone |
+| `card_drivers.html` | 2 | 热门驱动 — Top 4 上升关键词 + 进度条 |
+| `card_cooling.html` | 3 | 退热信号 — 下降关键词，红色强调 |
+| `card_weekly.html` | 4 | 本周简报 — 快速上升 / 降温中 叙述摘要 |
+| `card.html` | — | 已废弃，保留备用，renderer 不再引用 |
 
 ### Cold Start
-- Fewer than 7 days in DB → `warming_up=True` in `AnalysisResult`.
-- Renderer adds a "(warming up)" label to image and `post.txt`.
+- Fewer than 7 days in DB → `warming_up=True` in `AnalysisResult`, `week_delta=0.0`.
+- Renderer shows "数据积累中 — 不足 7 天" label instead of delta.
 
 ### Testing Conventions
 - `test_analyzer.py`: use in-memory SQLite, never touch `data/index.db`.
 - `test_renderer.py`: outputs to `tests/fixtures/output/` (git-ignored).
 - Group tests in `class Test<Feature>` blocks.
 - Sync tests: plain `def`. Async tests: `@pytest.mark.asyncio`.
+- When adding a field to `AnalysisResult`, update **all** test fixtures that construct it.
 
 ---
 
@@ -189,3 +206,6 @@ Modules communicate **only** via `TypedDict` dicts. No shared global state. All 
 - **No unauthorized browsing**: only open files referenced in `docs/architecture.md` or the active STM task list.
 - **No silent drift**: never change architecture without updating `docs/architecture.md` and getting user consent.
 - **No bare `python`/`pytest`**: always `.venv/bin/python3` / `.venv/bin/python3 -m pytest`.
+- **No English UI text in templates**: all user-visible strings in HTML templates must be Chinese.
+- **No hardcoded paths or brand strings**: use `config.py` constants (`OUTPUT_DIR`, `AUTHOR_HANDLE`, etc.).
+

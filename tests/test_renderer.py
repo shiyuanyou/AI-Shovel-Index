@@ -2,7 +2,7 @@
 
 Writes test output to tests/fixtures/output/ for visual inspection.
 Tests verify file existence, image dimensions, and post.txt content.
-All four card PNGs (index, drivers, cooling, weekly) are verified.
+Three card PNGs are verified: index (card1), daily (card2), weekly (card3).
 """
 
 from pathlib import Path
@@ -13,6 +13,7 @@ from PIL import Image
 from config import (
     AUTHOR_HANDLE,
     AnalysisResult,
+    DailyRankingEntry,
     IMAGE_HEIGHT,
     IMAGE_WIDTH,
     RankingEntry,
@@ -24,6 +25,13 @@ from renderer import render
 # ---------------------------------------------------------------------------
 
 FIXTURE_OUTPUT = Path(__file__).parent / "fixtures" / "output"
+
+_SAMPLE_DAILY = [
+    DailyRankingEntry(keyword="Sora 教程", delta=45, pct=0.45),
+    DailyRankingEntry(keyword="AI 副业", delta=28, pct=0.28),
+    DailyRankingEntry(keyword="ChatGPT 教程", delta=5, pct=0.05),
+    DailyRankingEntry(keyword="Midjourney 教程", delta=-22, pct=-0.22),
+]
 
 
 def _make_result(
@@ -43,26 +51,27 @@ def _make_result(
             RankingEntry(keyword="ChatGPT 教程", growth=0.08),
             RankingEntry(keyword="Midjourney 教程", growth=-0.10),
         ],
+        daily_rankings=_SAMPLE_DAILY,
         warming_up=warming_up,
         week_delta=week_delta,
     )
 
 
 # ---------------------------------------------------------------------------
-# Output file generation — 4 PNGs + 1 txt
+# Output file generation — 3 PNGs + 1 txt
 # ---------------------------------------------------------------------------
 
 
 class TestRenderOutputFiles:
-    def test_returns_five_paths(self, tmp_path: Path) -> None:
+    def test_returns_four_paths(self, tmp_path: Path) -> None:
         result = _make_result()
         paths = render(result, output_dir=tmp_path)
-        assert len(paths) == 5
+        assert len(paths) == 4
 
     def test_all_pngs_created(self, tmp_path: Path) -> None:
         result = _make_result()
-        idx, drv, cool, wkly, txt = render(result, output_dir=tmp_path)
-        for p in (idx, drv, cool, wkly):
+        idx, daily, wkly, txt = render(result, output_dir=tmp_path)
+        for p in (idx, daily, wkly):
             assert p.exists(), f"Missing PNG: {p}"
             assert p.suffix == ".png"
 
@@ -74,17 +83,16 @@ class TestRenderOutputFiles:
 
     def test_png_filenames_contain_date(self, tmp_path: Path) -> None:
         result = _make_result(date="2026-03-06")
-        idx, drv, cool, wkly, _ = render(result, output_dir=tmp_path)
-        for p in (idx, drv, cool, wkly):
+        idx, daily, wkly, _ = render(result, output_dir=tmp_path)
+        for p in (idx, daily, wkly):
             assert "2026_03_06" in p.name, f"Date not in filename: {p.name}"
 
     def test_png_filename_prefixes(self, tmp_path: Path) -> None:
         result = _make_result(date="2026-03-06")
-        idx, drv, cool, wkly, _ = render(result, output_dir=tmp_path)
+        idx, daily, wkly, _ = render(result, output_dir=tmp_path)
         assert idx.name.startswith("card1_index_")
-        assert drv.name.startswith("card2_drivers_")
-        assert cool.name.startswith("card3_cooling_")
-        assert wkly.name.startswith("card4_weekly_")
+        assert daily.name.startswith("card2_daily_")
+        assert wkly.name.startswith("card3_weekly_")
 
     def test_returns_path_objects(self, tmp_path: Path) -> None:
         result = _make_result()
@@ -93,23 +101,23 @@ class TestRenderOutputFiles:
 
 
 # ---------------------------------------------------------------------------
-# Image dimensions — all 4 cards must be 1080×1080
+# Image dimensions — all 3 cards must be 1080×1080
 # ---------------------------------------------------------------------------
 
 
 class TestImageDimensions:
     def test_all_cards_1080x1080(self, tmp_path: Path) -> None:
         result = _make_result()
-        idx, drv, cool, wkly, _ = render(result, output_dir=tmp_path)
-        for p in (idx, drv, cool, wkly):
+        idx, daily, wkly, _ = render(result, output_dir=tmp_path)
+        for p in (idx, daily, wkly):
             img = Image.open(p)
             assert img.size == (IMAGE_WIDTH, IMAGE_HEIGHT), f"{p.name}: {img.size}"
             assert img.size == (1080, 1080)
 
     def test_all_cards_rgb_mode(self, tmp_path: Path) -> None:
         result = _make_result()
-        idx, drv, cool, wkly, _ = render(result, output_dir=tmp_path)
-        for p in (idx, drv, cool, wkly):
+        idx, daily, wkly, _ = render(result, output_dir=tmp_path)
+        for p in (idx, daily, wkly):
             img = Image.open(p)
             assert img.mode == "RGB", f"{p.name}: mode={img.mode}"
 
@@ -190,7 +198,7 @@ class TestPostTxt:
 
 
 # ---------------------------------------------------------------------------
-# Cooling-only scenario — card3 must render with data, card2 empty state
+# Cooling-only scenario — card3 must render with data
 # ---------------------------------------------------------------------------
 
 
@@ -204,11 +212,15 @@ class TestCoolingOnly:
                 RankingEntry(keyword="Midjourney 教程", growth=-0.25),
                 RankingEntry(keyword="Stable Diffusion 教程", growth=-0.18),
             ],
+            daily_rankings=[
+                DailyRankingEntry(keyword="Midjourney 教程", delta=-20, pct=-0.25),
+                DailyRankingEntry(keyword="Stable Diffusion 教程", delta=-15, pct=-0.18),
+            ],
             warming_up=False,
             week_delta=-4.0,
         )
-        idx, drv, cool, wkly, txt = render(result, output_dir=tmp_path)
-        for p in (idx, drv, cool, wkly, txt):
+        idx, daily, wkly, txt = render(result, output_dir=tmp_path)
+        for p in (idx, daily, wkly, txt):
             assert p.exists()
 
 
@@ -232,11 +244,39 @@ class TestAllStatuses:
         self, status: str, index: float, delta: float, tmp_path: Path
     ) -> None:
         result = _make_result(status=status, index=index, week_delta=delta)
-        idx, drv, cool, wkly, _ = render(result, output_dir=tmp_path)
-        for p in (idx, drv, cool, wkly):
+        idx, daily, wkly, _ = render(result, output_dir=tmp_path)
+        for p in (idx, daily, wkly):
             assert p.exists()
             img = Image.open(p)
             assert img.size == (IMAGE_WIDTH, IMAGE_HEIGHT)
+
+
+# ---------------------------------------------------------------------------
+# Daily signal card — empty daily_rankings renders without error
+# ---------------------------------------------------------------------------
+
+
+class TestDailySignalCard:
+    def test_empty_daily_rankings_renders(self, tmp_path: Path) -> None:
+        """Card 2 must render gracefully when no daily comparison data is available."""
+        result = AnalysisResult(
+            date="2026-03-06",
+            index=50.0,
+            status="rising",
+            rankings=[RankingEntry(keyword="AI 副业", growth=0.20)],
+            daily_rankings=[],
+            warming_up=False,
+            week_delta=3.0,
+        )
+        idx, daily, wkly, txt = render(result, output_dir=tmp_path)
+        for p in (idx, daily, wkly, txt):
+            assert p.exists()
+
+    def test_daily_card_1080x1080(self, tmp_path: Path) -> None:
+        result = _make_result()
+        _, daily, _, _ = render(result, output_dir=tmp_path)
+        img = Image.open(daily)
+        assert img.size == (1080, 1080)
 
 
 # ---------------------------------------------------------------------------
@@ -247,10 +287,10 @@ class TestAllStatuses:
 def test_save_fixture_for_visual_inspection() -> None:
     """Generate a real render into fixtures/output/ for manual review.
 
-    Not a strict assertion test — just ensures all four cards are produced.
+    Not a strict assertion test — just ensures all three cards are produced.
     """
     FIXTURE_OUTPUT.mkdir(parents=True, exist_ok=True)
     result = _make_result(status="rising", index=51.0, warming_up=False, week_delta=7.3)
-    idx, drv, cool, wkly, txt = render(result, output_dir=FIXTURE_OUTPUT)
-    for p in (idx, drv, cool, wkly, txt):
+    idx, daily, wkly, txt = render(result, output_dir=FIXTURE_OUTPUT)
+    for p in (idx, daily, wkly, txt):
         assert p.exists()

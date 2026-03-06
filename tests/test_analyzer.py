@@ -199,7 +199,15 @@ class TestResultStructure:
     def test_required_keys_present(self) -> None:
         records = [_make_record("AI 副业", TODAY)]
         result = compute_index(records, TODAY)
-        for key in ("date", "index", "status", "rankings", "warming_up", "week_delta"):
+        for key in (
+            "date",
+            "index",
+            "status",
+            "rankings",
+            "daily_rankings",
+            "warming_up",
+            "week_delta",
+        ):
             assert key in result
 
     def test_date_passthrough(self) -> None:
@@ -214,6 +222,76 @@ class TestResultStructure:
             entry = result["rankings"][0]
             assert "keyword" in entry
             assert "growth" in entry
+
+    def test_daily_rankings_is_list(self) -> None:
+        records = [_make_record("AI 副业", TODAY)]
+        result = compute_index(records, TODAY)
+        assert isinstance(result["daily_rankings"], list)
+
+
+# ---------------------------------------------------------------------------
+# compute_index — daily_rankings (today vs yesterday)
+# ---------------------------------------------------------------------------
+
+
+class TestDailyRankings:
+    def test_daily_rankings_empty_when_no_yesterday(self) -> None:
+        """Without yesterday's data all pct should be 0.0."""
+        records = [_make_record("AI 副业", TODAY)]
+        result = compute_index(records, TODAY)
+        # Entry exists but pct should be 0.0 (no yesterday)
+        assert all(e["pct"] == 0.0 for e in result["daily_rankings"])
+
+    def test_daily_rankings_positive_when_today_higher(self) -> None:
+        """Today's count higher than yesterday → positive pct."""
+        yesterday = _days_ago(1)
+        records = [
+            _make_record("AI 副业", yesterday, item_count=100),
+            _make_record("AI 副业", TODAY, item_count=150),
+        ]
+        result = compute_index(records, TODAY)
+        entry = next(e for e in result["daily_rankings"] if e["keyword"] == "AI 副业")
+        assert entry["pct"] == pytest.approx(0.5)
+        assert entry["delta"] == 50
+
+    def test_daily_rankings_negative_when_today_lower(self) -> None:
+        """Today's count lower than yesterday → negative pct."""
+        yesterday = _days_ago(1)
+        records = [
+            _make_record("AI 副业", yesterday, item_count=200),
+            _make_record("AI 副业", TODAY, item_count=100),
+        ]
+        result = compute_index(records, TODAY)
+        entry = next(e for e in result["daily_rankings"] if e["keyword"] == "AI 副业")
+        assert entry["pct"] == pytest.approx(-0.5)
+        assert entry["delta"] == -100
+
+    def test_daily_rankings_sorted_descending(self) -> None:
+        """daily_rankings must be sorted by pct descending."""
+        yesterday = _days_ago(1)
+        records = [
+            _make_record("kw_high", yesterday, item_count=100),
+            _make_record("kw_high", TODAY, item_count=200),
+            _make_record("kw_low", yesterday, item_count=100),
+            _make_record("kw_low", TODAY, item_count=80),
+        ]
+        result = compute_index(records, TODAY)
+        pcts = [e["pct"] for e in result["daily_rankings"]]
+        assert pcts == sorted(pcts, reverse=True)
+
+    def test_daily_ranking_entry_keys(self) -> None:
+        """Each DailyRankingEntry must have keyword, delta, pct."""
+        yesterday = _days_ago(1)
+        records = [
+            _make_record("AI 副业", yesterday, item_count=100),
+            _make_record("AI 副业", TODAY, item_count=120),
+        ]
+        result = compute_index(records, TODAY)
+        if result["daily_rankings"]:
+            entry = result["daily_rankings"][0]
+            assert "keyword" in entry
+            assert "delta" in entry
+            assert "pct" in entry
 
 
 # ---------------------------------------------------------------------------

@@ -141,7 +141,45 @@
 
 ---
 
-## 设计决策记录
+## Phase 6：卡片重组 ✅
+
+**版本目标**：将 4 卡片精简为 3 张，删除冗余的卡片2（驱动词）和卡片3（退热词），用更有信息密度的卡片替代。
+
+**创建时间**：2026-03-06
+**当前状态**：完成 ✅
+
+### 新卡片定义
+
+| 编号 | 文件 | 内容 |
+|------|------|------|
+| Card 1 | `card_index.html` | 核心指数 + 大仪表盘 + week_delta（不变） |
+| Card 2 | `card_drivers.html` | 今日信号 — 今日 vs 昨日各关键词商品数量变化 |
+| Card 3 | `card_cooling.html` | 本周简报 — 左右分栏：左侧快速上升 / 右侧降温中 |
+| —     | `card_weekly.html` | 已废弃，保留文件但 renderer 不再引用 |
+
+### 任务列表
+
+- [x] `config.py` — 新增 `DailyRankingEntry` TypedDict（keyword, delta, pct）
+- [x] `config.py` — `AnalysisResult` 新增 `daily_rankings: list[DailyRankingEntry]` 字段
+- [x] `analyzer.py` — `compute_index()` 计算今日 vs 昨日 item_count 差值，填充 `daily_rankings`
+- [x] `templates/card_drivers.html` — 重设计为「今日信号」卡片，展示今日 vs 昨日涨跌 + 进度条
+- [x] `templates/card_cooling.html` — 重设计为「本周简报」左右分栏布局（左:上升/右:下降）
+- [x] `renderer.py` — 精简为 3 卡片；新增 `_build_context_daily()`；返回 `tuple[Path,Path,Path,Path]`
+- [x] `run_daily.py` — 更新解包逻辑（4 返回值）
+- [x] `preview_all.py` — 新增 `DailyRankingEntry` 样本数据，适配 4 返回值
+- [x] `tests/test_renderer.py` — 全面更新（3 PNG + 1 txt，新增 `TestDailySignalCard`）
+- [x] `tests/test_analyzer.py` — 新增 `TestDailyRankings`（5项）和 `test_daily_rankings_is_list`
+
+**验收标准**：`pytest tests/ -v` 全部通过 ✅ 2026-03-06（58/58）；black/ruff/mypy 全部清洁。
+
+---
+
+## 设计决策记录（续）
+
+| 日期 | 决策 | 原因 |
+|------|------|------|
+| 2026-03-06 | 卡片从 4 张精简为 3 张 | 原卡片4（周报）已包含卡片2/3的信息，冗余；新卡片2改为日内同比（今日vs昨日），信息粒度更细 |
+| 2026-03-06 | 周报卡片改为左右分栏 | 上升/下降对比在同一视野内更直观，比上下排列传播效果更好 |
 
 | 日期 | 决策 | 原因 |
 |------|------|------|

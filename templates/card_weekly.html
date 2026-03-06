@@ -188,14 +188,14 @@ body {
 }
 
 .footer-tagline {
-  font-size: 12px;
-  color: #3a3a34;
+  font-size: 18px;
+  color: #666660;
   letter-spacing: 0.06em;
 }
 
 .footer-handle {
-  font-size: 14px;
-  color: #555550;
+  font-size: 21px;
+  color: #888880;
   font-weight: 600;
   letter-spacing: 0.04em;
 }
@@ -221,7 +221,7 @@ body {
     </header>
 
     <!-- ── SECTION LABEL ── -->
-    <p class="section-label">Weekly Brief</p>
+    <p class="section-label">本周简报</p>
 
     <!-- ── BODY ── -->
     <div class="brief-body">
@@ -231,7 +231,7 @@ body {
       <div class="signal-block">
         <div class="signal-header">
           <span class="signal-icon">&#128293;</span>
-          <span class="signal-title" style="color: {{ accent_color }};">Rising Fast</span>
+          <span class="signal-title" style="color: {{ accent_color }};">快速上升</span>
         </div>
         <ul class="signal-items">
           {% for entry in drivers %}
@@ -256,7 +256,7 @@ body {
       <div class="signal-block">
         <div class="signal-header">
           <span class="signal-icon">&#10052;</span>
-          <span class="signal-title" style="color: #ff6b6b;">Cooling Down</span>
+          <span class="signal-title" style="color: #ff6b6b;">降温中</span>
         </div>
         <ul class="signal-items">
           {% for entry in cooling %}
@@ -274,7 +274,7 @@ body {
 
       {% if not drivers and not cooling %}
       <div style="flex:1; display:flex; align-items:center; justify-content:center;">
-        <p style="font-size:24px; color:#444440; letter-spacing:0.04em;">No signal data available</p>
+        <p style="font-size:24px; color:#444440; letter-spacing:0.04em;">暂无信号数据</p>
       </div>
       {% endif %}
 
@@ -282,7 +282,7 @@ body {
 
     <!-- ── FOOTER ── -->
     <footer class="footer">
-      <p class="footer-tagline">Tracking AI speculation via tutorial demand</p>
+      <p class="footer-tagline">通过教程需求追踪 AI 投机热度</p>
       <p class="footer-handle">{{ author_handle }}</p>
     </footer>
 

@@ -96,13 +96,22 @@ class RankingEntry(TypedDict):
     growth: float  # ratio vs 7-day baseline; 1.0 = flat
 
 
+class DailyRankingEntry(TypedDict):
+    """Per-keyword day-over-day change entry inside AnalysisResult."""
+
+    keyword: str
+    delta: float  # today_count - yesterday_count (absolute change in item_count)
+    pct: float  # percentage change vs yesterday; 0.0 if no yesterday data
+
+
 class AnalysisResult(TypedDict):
     """Output of analyzer.py, consumed by renderer.py."""
 
     date: str  # "YYYY-MM-DD"
     index: float  # 0.0–100.0
     status: str  # "cold" | "early" | "rising" | "speculation" | "bubble"
-    rankings: list[RankingEntry]  # sorted descending by growth
+    rankings: list[RankingEntry]  # sorted descending by growth (7-day window)
+    daily_rankings: list[DailyRankingEntry]  # sorted descending by pct (today vs yesterday)
     warming_up: bool  # True when DB has fewer than HISTORY_DAYS days of data
     week_delta: float  # index change vs 7 days ago (positive = rising, negative = falling)
 

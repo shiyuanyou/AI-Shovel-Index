@@ -16,12 +16,12 @@ body {
   position: relative;
 }
 
-/* radial glow behind gauge */
+/* 仪表盘背后的径向光晕 */
 .bg-glow {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -60%);
+  transform: translate(-50%, -50%);
   width: 700px;
   height: 700px;
   border-radius: 50%;
@@ -30,21 +30,22 @@ body {
   pointer-events: none;
 }
 
+/* 整张卡片：绝对定位容器 */
 .card {
   position: relative;
   width: 1080px;
   height: 1080px;
-  display: flex;
-  flex-direction: column;
-  padding: 56px 64px 52px;
 }
 
-/* ── HEADER ── */
+/* ── 顶部标题栏：固定在顶部 ── */
 .header {
+  position: absolute;
+  top: 56px;
+  left: 64px;
+  right: 64px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  flex-shrink: 0;
 }
 
 .brand-name {
@@ -63,6 +64,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* 状态胶囊标签 */
 .status-pill {
   display: flex;
   align-items: center;
@@ -86,15 +88,16 @@ body {
   text-transform: uppercase;
 }
 
-/* ── GAUGE SECTION ── */
+/* ── 仪表盘组：绝对定位在画面正中 ── */
 .gauge-section {
-  flex: 1;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  position: relative;
-  margin-top: -24px;
 }
 
 .gauge-svg {
@@ -102,7 +105,7 @@ body {
   overflow: visible;
 }
 
-/* track: full semi-circle */
+/* 底轨：完整半圆 */
 .gauge-track {
   fill: none;
   stroke: #2a2a22;
@@ -110,15 +113,14 @@ body {
   stroke-linecap: round;
 }
 
-/* fill: accent arc */
+/* 填充弧：强调色 */
 .gauge-fill {
   fill: none;
   stroke-width: 28;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.6s ease;
 }
 
-/* index number */
+/* 指数大数字 */
 .gauge-number {
   font-size: 220px;
   font-weight: 800;
@@ -129,9 +131,9 @@ body {
   font-family: "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
 }
 
-/* phase label */
+/* 阶段标签 */
 .gauge-phase {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 400;
   fill: #888880;
   text-anchor: middle;
@@ -139,40 +141,44 @@ body {
   font-family: "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
 }
 
-/* week delta */
+/* 周变化量 */
 .week-delta {
-  margin-top: 28px;
-  font-size: 26px;
-  font-weight: 500;
+  margin-top: 32px;
+  font-size: 36px;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-align: center;
 }
 
+/* 冷启动提示 */
 .warming-note {
-  margin-top: 20px;
-  font-size: 14px;
+  margin-top: 24px;
+  font-size: 20px;
   color: #666660;
   text-align: center;
   letter-spacing: 0.04em;
 }
 
-/* ── FOOTER ── */
+/* ── 底部页脚：固定在底部 ── */
 .footer {
-  flex-shrink: 0;
+  position: absolute;
+  bottom: 52px;
+  left: 64px;
+  right: 64px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
 }
 
 .footer-tagline {
-  font-size: 12px;
-  color: #3a3a34;
+  font-size: 18px;
+  color: #666660;
   letter-spacing: 0.06em;
 }
 
 .footer-handle {
-  font-size: 14px;
-  color: #555550;
+  font-size: 21px;
+  color: #888880;
   font-weight: 600;
   letter-spacing: 0.04em;
 }
@@ -184,7 +190,7 @@ body {
 
   <div class="card">
 
-    <!-- ── HEADER ── -->
+    <!-- ── 顶部标题栏 ── -->
     <header class="header">
       <div>
         <p class="brand-name">AI Shovel Index</p>
@@ -197,54 +203,53 @@ body {
       </div>
     </header>
 
-    <!-- ── GAUGE ── -->
-    <!--
-      SVG: viewBox 0 0 1080 500
-      Centre: cx=540, cy=480 — circle sits at bottom edge so only top half shows
-      Radius: r=240
-      Arc length (semicircle) = π × 240 ≈ 753.98
-      Path: M 300 480  A 240 240 0 0 1 780 480
+    <!-- ── 仪表盘（绝对居中）──
+         SVG viewBox: 0 0 1080 560
+         圆心: cx=540, cy=340；半径: r=240
+         弧端点: M 300 340  A 240 240 0 0 1 780 340
+         数字 baseline 在圆心下方，弧线在上方形成罩住效果
     -->
     <section class="gauge-section">
       <svg class="gauge-svg"
-           width="1080" height="500"
-           viewBox="0 0 1080 500"
+           width="1080" height="440"
+           viewBox="0 86 1080 440"
            xmlns="http://www.w3.org/2000/svg">
 
-        <!-- track -->
+        <!-- 底轨 -->
         <path class="gauge-track"
-              d="M 300 480 A 240 240 0 0 1 780 480"
+              d="M 300 340 A 240 240 0 0 1 780 340"
               pathLength="{{ gauge_circumference }}" />
 
-        <!-- fill -->
+        <!-- 填充弧 -->
         <path class="gauge-fill"
-              d="M 300 480 A 240 240 0 0 1 780 480"
+              d="M 300 340 A 240 240 0 0 1 780 340"
               stroke="{{ accent_color }}"
               pathLength="{{ gauge_circumference }}"
               stroke-dasharray="{{ gauge_circumference }}"
               stroke-dashoffset="{{ arc_offset }}" />
 
-        <!-- big number -->
-        <text class="gauge-number" x="540" y="420">{{ index_int }}</text>
+        <!-- 指数大数字：坐在圆心下方 -->
+        <text class="gauge-number" x="540" y="430">{{ index_int }}</text>
 
-        <!-- phase label -->
-        <text class="gauge-phase" x="540" y="468">{{ phase_label }}</text>
+        <!-- 阶段标签 -->
+        <text class="gauge-phase" x="540" y="496">{{ phase_label }}</text>
 
       </svg>
 
-      <!-- week delta -->
+      <!-- 周变化量 -->
       {% if not warming_up %}
-      <p class="week-delta" style="color: {{ delta_color }};">{{ delta_str }} this week</p>
+      <p class="week-delta" style="color: {{ delta_color }};">{{ delta_str }} 本周</p>
       {% endif %}
 
+      <!-- 冷启动提示 -->
       {% if warming_up %}
-      <p class="warming-note">warming up — fewer than 7 days of data</p>
+      <p class="warming-note">数据积累中 — 不足 7 天</p>
       {% endif %}
     </section>
 
-    <!-- ── FOOTER ── -->
+    <!-- ── 底部页脚 ── -->
     <footer class="footer">
-      <p class="footer-tagline">Tracking AI speculation via tutorial demand</p>
+      <p class="footer-tagline">通过教程需求追踪 AI 投机热度</p>
       <p class="footer-handle">{{ author_handle }}</p>
     </footer>
 

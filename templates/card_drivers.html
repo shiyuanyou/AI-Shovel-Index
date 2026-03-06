@@ -16,7 +16,6 @@ body {
   position: relative;
 }
 
-/* subtle top-edge glow */
 .bg-glow {
   position: absolute;
   top: -200px;
@@ -45,7 +44,7 @@ body {
   justify-content: space-between;
   align-items: flex-start;
   flex-shrink: 0;
-  margin-bottom: 72px;
+  margin-bottom: 52px;
 }
 
 .brand-name {
@@ -94,7 +93,15 @@ body {
   letter-spacing: 0.22em;
   color: #555550;
   text-transform: uppercase;
-  margin-bottom: 48px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.section-sub {
+  font-size: 13px;
+  color: #333330;
+  letter-spacing: 0.06em;
+  margin-bottom: 44px;
   flex-shrink: 0;
 }
 
@@ -104,13 +111,13 @@ body {
   list-style: none;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  justify-content: space-between;
 }
 
 .kw-row {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .kw-meta {
@@ -120,7 +127,7 @@ body {
 }
 
 .kw-name {
-  font-size: 40px;
+  font-size: 38px;
   font-weight: 700;
   color: #ffffff;
   letter-spacing: -0.01em;
@@ -128,11 +135,17 @@ body {
 }
 
 .kw-pct {
-  font-size: 40px;
+  font-size: 38px;
   font-weight: 800;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+}
+
+.kw-delta-abs {
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
 }
 
 .bar-track {
@@ -166,18 +179,18 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-top: 48px;
+  margin-top: 40px;
 }
 
 .footer-tagline {
-  font-size: 12px;
-  color: #3a3a34;
+  font-size: 18px;
+  color: #666660;
   letter-spacing: 0.06em;
 }
 
 .footer-handle {
-  font-size: 14px;
-  color: #555550;
+  font-size: 21px;
+  color: #888880;
   font-weight: 600;
   letter-spacing: 0.04em;
 }
@@ -203,31 +216,35 @@ body {
     </header>
 
     <!-- ── SECTION LABEL ── -->
-    <p class="section-label">Top Drivers</p>
+    <p class="section-label">今日信号</p>
+    <p class="section-sub">今日 vs 昨日 — 各关键词商品数量变化</p>
 
     <!-- ── KEYWORD LIST ── -->
-    {% if drivers %}
+    {% if daily_rankings %}
     <ul class="kw-list">
-      {% for entry in drivers %}
+      {% for entry in daily_rankings %}
       <li class="kw-row">
         <div class="kw-meta">
           <span class="kw-name">{{ entry.keyword }}</span>
-          <span class="kw-pct" style="color: {{ accent_color }};">{{ entry.pct_str }}</span>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+            <span class="kw-pct" style="color: {{ entry.pct_color }};">{{ entry.pct_str }}</span>
+            <span class="kw-delta-abs" style="color: #444440;">{{ entry.delta_str }}</span>
+          </div>
         </div>
         <div class="bar-track">
           <div class="bar-fill"
-               style="width: {{ entry.bar_pct }}%; background: {{ accent_color }};"></div>
+               style="width: {{ entry.bar_pct }}%; background: {{ entry.pct_color }};"></div>
         </div>
       </li>
       {% endfor %}
     </ul>
     {% else %}
-    <div class="empty-msg">No rising keywords today</div>
+    <div class="empty-msg">暂无昨日对比数据</div>
     {% endif %}
 
     <!-- ── FOOTER ── -->
     <footer class="footer">
-      <p class="footer-tagline">Tracking AI speculation via tutorial demand</p>
+      <p class="footer-tagline">通过教程需求追踪 AI 投机热度</p>
       <p class="footer-handle">{{ author_handle }}</p>
     </footer>
 

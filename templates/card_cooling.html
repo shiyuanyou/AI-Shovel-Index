@@ -18,16 +18,15 @@ body {
 
 .bg-glow {
   position: absolute;
-  top: -200px;
+  top: -100px;
   left: 50%;
   transform: translateX(-50%);
-  width: 800px;
-  height: 500px;
+  width: 900px;
+  height: 600px;
   border-radius: 50%;
-  opacity: 0.07;
-  filter: blur(100px);
+  opacity: 0.06;
+  filter: blur(120px);
   pointer-events: none;
-  background: #ff4d4d;
 }
 
 .card {
@@ -36,7 +35,7 @@ body {
   height: 1080px;
   display: flex;
   flex-direction: column;
-  padding: 56px 80px 52px;
+  padding: 56px 72px 52px;
 }
 
 /* ── HEADER ── */
@@ -45,7 +44,7 @@ body {
   justify-content: space-between;
   align-items: flex-start;
   flex-shrink: 0;
-  margin-bottom: 72px;
+  margin-bottom: 48px;
 }
 
 .brand-name {
@@ -92,53 +91,106 @@ body {
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.22em;
-  color: #553333;
+  color: #555550;
   text-transform: uppercase;
-  margin-bottom: 48px;
+  margin-bottom: 36px;
   flex-shrink: 0;
 }
 
-/* ── KEYWORD LIST ── */
-.kw-list {
+/* ── TWO-COLUMN BODY ── */
+.body {
   flex: 1;
+  display: flex;
+  gap: 0;
+  min-height: 0;
+}
+
+/* vertical divider */
+.col-divider {
+  width: 1px;
+  background: #222218;
+  flex-shrink: 0;
+  margin: 0 40px;
+  align-self: stretch;
+}
+
+/* each column */
+.col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* column header */
+.col-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex-shrink: 0;
+}
+
+.col-icon {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.col-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* keyword list inside each column */
+.kw-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  gap: 0;
+  flex: 1;
+  justify-content: space-evenly;
 }
 
 .kw-row {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .kw-meta {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 8px;
 }
 
 .kw-name {
-  font-size: 40px;
+  font-size: 28px;
   font-weight: 700;
   color: #ffffff;
   letter-spacing: -0.01em;
-  line-height: 1;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .kw-pct {
-  font-size: 40px;
+  font-size: 28px;
   font-weight: 800;
-  color: #ff6b6b;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
+  line-height: 1.1;
+  flex-shrink: 0;
 }
 
 .bar-track {
   width: 100%;
-  height: 3px;
+  height: 2px;
   background: #2a2a22;
   border-radius: 2px;
   overflow: hidden;
@@ -147,36 +199,28 @@ body {
 .bar-fill {
   height: 100%;
   border-radius: 2px;
-  background: #ff6b6b;
-  min-width: 4px;
+  min-width: 3px;
+}
+
+/* summary note below list */
+.col-summary {
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  margin-top: 20px;
+  flex-shrink: 0;
 }
 
 /* empty state */
-.empty-msg {
+.col-empty {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  text-align: center;
-}
-
-.empty-icon {
-  font-size: 64px;
-  line-height: 1;
-}
-
-.empty-text {
-  font-size: 28px;
-  color: #444440;
-  letter-spacing: 0.04em;
-}
-
-.empty-sub {
-  font-size: 16px;
+  font-size: 18px;
   color: #333330;
   letter-spacing: 0.06em;
+  text-align: center;
 }
 
 /* ── FOOTER ── */
@@ -185,18 +229,18 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-top: 48px;
+  margin-top: 36px;
 }
 
 .footer-tagline {
-  font-size: 12px;
-  color: #3a3a34;
+  font-size: 18px;
+  color: #666660;
   letter-spacing: 0.06em;
 }
 
 .footer-handle {
-  font-size: 14px;
-  color: #555550;
+  font-size: 21px;
+  color: #888880;
   font-weight: 600;
   letter-spacing: 0.04em;
 }
@@ -204,7 +248,7 @@ body {
 </head>
 <body>
 
-  <div class="bg-glow"></div>
+  <div class="bg-glow" style="background: {{ accent_color }};"></div>
 
   <div class="card">
 
@@ -222,34 +266,79 @@ body {
     </header>
 
     <!-- ── SECTION LABEL ── -->
-    <p class="section-label">Cooling Signals</p>
+    <p class="section-label">本周简报</p>
 
-    <!-- ── KEYWORD LIST ── -->
-    {% if cooling %}
-    <ul class="kw-list">
-      {% for entry in cooling %}
-      <li class="kw-row">
-        <div class="kw-meta">
-          <span class="kw-name">{{ entry.keyword }}</span>
-          <span class="kw-pct">{{ entry.pct_str }}</span>
+    <!-- ── TWO-COLUMN BODY ── -->
+    <div class="body">
+
+      <!-- LEFT: Rising -->
+      <div class="col">
+        <div class="col-header">
+          <span class="col-icon">&#128293;</span>
+          <span class="col-title" style="color: {{ accent_color }};">快速上升</span>
         </div>
-        <div class="bar-track">
-          <div class="bar-fill" style="width: {{ entry.bar_pct }}%;"></div>
+
+        {% if drivers %}
+        <ul class="kw-list">
+          {% for entry in drivers %}
+          <li class="kw-row">
+            <div class="kw-meta">
+              <span class="kw-name">{{ entry.keyword }}</span>
+              <span class="kw-pct" style="color: {{ accent_color }};">{{ entry.pct_str }}</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill"
+                   style="width: {{ entry.bar_pct }}%; background: {{ accent_color }};"></div>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% if driver_summary %}
+        <p class="col-summary" style="color: #666660;">{{ driver_summary }}</p>
+        {% endif %}
+        {% else %}
+        <div class="col-empty">暂无上升信号</div>
+        {% endif %}
+      </div>
+
+      <!-- DIVIDER -->
+      <div class="col-divider"></div>
+
+      <!-- RIGHT: Cooling -->
+      <div class="col">
+        <div class="col-header">
+          <span class="col-icon">&#10052;</span>
+          <span class="col-title" style="color: #ff6b6b;">降温中</span>
         </div>
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <div class="empty-msg">
-      <div class="empty-icon">&#10024;</div>
-      <p class="empty-text">No cooling signals</p>
-      <p class="empty-sub">All tracked keywords are holding or rising</p>
+
+        {% if cooling %}
+        <ul class="kw-list">
+          {% for entry in cooling %}
+          <li class="kw-row">
+            <div class="kw-meta">
+              <span class="kw-name">{{ entry.keyword }}</span>
+              <span class="kw-pct" style="color: #ff6b6b;">{{ entry.pct_str }}</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill"
+                   style="width: {{ entry.bar_pct }}%; background: #ff6b6b;"></div>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% if cooling_summary %}
+        <p class="col-summary" style="color: #553333;">{{ cooling_summary }}</p>
+        {% endif %}
+        {% else %}
+        <div class="col-empty">暂无退热信号</div>
+        {% endif %}
+      </div>
+
     </div>
-    {% endif %}
 
     <!-- ── FOOTER ── -->
     <footer class="footer">
-      <p class="footer-tagline">Tracking AI speculation via tutorial demand</p>
+      <p class="footer-tagline">通过教程需求追踪 AI 投机热度</p>
       <p class="footer-handle">{{ author_handle }}</p>
     </footer>
 

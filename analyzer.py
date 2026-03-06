@@ -13,6 +13,7 @@ from datetime import date, timedelta
 from config import (
     AnalysisResult,
     CrawlRecord,
+    DailyRankingEntry,
     HISTORY_DAYS,
     INDEX_MAX,
     INDEX_SCALE,
@@ -221,11 +222,34 @@ def compute_index(records: list[CrawlRecord], today: str) -> AnalysisResult:
         warming_up,
     )
 
+    # Compute daily_rankings: today vs yesterday item_count for each keyword.
+    # Only keywords present both today and yesterday are included.
+    yesterday = (date.fromisoformat(today) - timedelta(days=1)).isoformat()
+    yesterday_by_kw: dict[str, CrawlRecord] = {
+        r["keyword"]: r for r in records if r["date"] == yesterday
+    }
+    daily_rankings: list[DailyRankingEntry] = []
+    for kw in active_keywords:
+        today_rec = today_by_kw.get(kw)
+        yest_rec = yesterday_by_kw.get(kw)
+        if today_rec is None:
+            continue
+        today_count = today_rec["item_count"]
+        if yest_rec is not None and yest_rec["item_count"] > 0:
+            delta = today_count - yest_rec["item_count"]
+            pct = delta / yest_rec["item_count"]
+        else:
+            delta = 0
+            pct = 0.0
+        daily_rankings.append(DailyRankingEntry(keyword=kw, delta=delta, pct=round(pct, 4)))
+    daily_rankings.sort(key=lambda e: e["pct"], reverse=True)
+
     return AnalysisResult(
         date=today,
         index=final_index,
         status=get_status(final_index),
         rankings=rankings,
+        daily_rankings=daily_rankings,
         warming_up=warming_up,
         week_delta=week_delta,
     )

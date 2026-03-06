@@ -68,18 +68,17 @@ def run(target_date: str) -> None:
 
     # ── Step 4: Render ─────────────────────────────────────────────────────
     logger.info("[4/4] Rendering output files…")
-    idx_png, drv_png, cool_png, wkly_png, txt_path = render(result)
+    idx_png, daily_png, wkly_png, txt_path = render(result)
 
     logger.info("=== Done ===")
-    for png in (idx_png, drv_png, cool_png, wkly_png):
+    for png in (idx_png, daily_png, wkly_png):
         logger.info("PNG  → %s", png)
     logger.info("Text → %s", txt_path)
 
     # Print final paths to stdout (for CI artifact collection)
     print(f"Card1 (index):   {idx_png}")
-    print(f"Card2 (drivers): {drv_png}")
-    print(f"Card3 (cooling): {cool_png}")
-    print(f"Card4 (weekly):  {wkly_png}")
+    print(f"Card2 (daily):   {daily_png}")
+    print(f"Card3 (weekly):  {wkly_png}")
     print(f"TXT:             {txt_path}")
 
 
