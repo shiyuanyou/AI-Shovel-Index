@@ -102,6 +102,7 @@ Modules communicate through `TypedDict` objects defined in `config.py`.
 ### `run_daily.py`
 - orchestrates crawl -> save -> analyze -> render
 - is the main batch entry point for local runs and CI
+- emits crawl health, analysis summary, and output summary logs for cloud troubleshooting
 
 ### `smoke_test.py`
 - renders a fixed sample `AnalysisResult` without crawling live data
@@ -198,10 +199,12 @@ The project is production-like in workflow, but not yet fully deployment-hardene
 - Runtime defaults now use UTC date strings for scheduled batch execution.
 - Renderer now validates required templates and expected output files before returning success.
 - The workflow now installs dependencies into a project-local `.venv` and supports a manual smoke-test mode.
+- `run_daily.py` now logs crawl health ratios and structured step summaries to stdout for easier cloud diagnosis.
 
 ### Known Deployment Gaps
 - font consistency on Linux servers is not guaranteed yet
 - SQLite still assumes a single-writer batch deployment even though journal mode is now forced to `DELETE`
+- long-term persistence strategy for `data/index.db` is still undecided outside the current git-backed workflow
 
 ## Deployment Refactor Direction
 

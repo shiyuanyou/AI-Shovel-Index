@@ -34,8 +34,8 @@
 
 ## Phase 4: Operability
 
-- [ ] Add crawler failure threshold warnings so systemic crawl breakage is visible quickly
-- [ ] Review logging for cloud execution and make sure failures are easy to diagnose from stdout logs
+- [x] Add crawler failure threshold warnings so systemic crawl breakage is visible quickly
+- [x] Review logging for cloud execution and make sure failures are easy to diagnose from stdout logs
 - [ ] Decide whether `data/index.db` should keep being committed to git or move to server persistence
 
 ## Acceptance Criteria

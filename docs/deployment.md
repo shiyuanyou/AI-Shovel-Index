@@ -91,6 +91,17 @@ can still produce all three cards plus `post.txt`.
 .venv/bin/python3 -m mypy . --ignore-missing-imports
 ```
 
+## Runtime Diagnostics
+
+The batch entry point now emits a few intentionally stable log lines for cloud troubleshooting:
+- `RUN_CONTEXT` shows the target date for the current batch
+- `CRAWL_SUMMARY` reports keyword count, total items, failed keyword count, and failure ratio
+- `CRAWL_HEALTH` escalates to warning or error when zero-item keywords cross configured thresholds
+- `ANALYSIS_SUMMARY` records index, status, warming-up state, and weekly delta
+- `OUTPUT_SUMMARY` records the final output file paths
+
+If many keywords suddenly fall back to zero records, check the `CRAWL_HEALTH` line first before trusting the day's index.
+
 ## Suggested Deployment Flow
 
 ### Option A: VPS + cron
@@ -133,6 +144,7 @@ The current `daily.yml` workflow now matches the repo conventions more closely:
 - it installs Python dependencies into that `.venv`
 - it installs Playwright with `.venv/bin/python3` and `.venv/bin/playwright`
 - manual dispatch can choose `pipeline` or `smoke` mode for quick server verification
+- runtime logs now surface crawl degradation in stdout instead of only listing zero-value keywords
 
 ## What Not To Deploy Yet
 

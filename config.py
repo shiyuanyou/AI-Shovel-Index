@@ -83,6 +83,10 @@ STATUS_COLORS: dict[str, str] = {
 
 SQLITE_JOURNAL_MODE: str = "DELETE"
 
+# Crawl health thresholds used by run_daily.py for cloud log visibility.
+CRAWL_FAILURE_WARN_RATIO: float = 0.25
+CRAWL_FAILURE_ERROR_RATIO: float = 0.50
+
 # ---------------------------------------------------------------------------
 # TypedDicts — shared data contracts between modules
 # ---------------------------------------------------------------------------
