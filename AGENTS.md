@@ -36,46 +36,60 @@ When user says "done", "bump", or "archive":
 
 ## 3. Build & Run Commands
 
-> All commands run from repo root. Use `python3` — never bare `python` or `pytest`.
-> `black`/`ruff`/`mypy` binaries live in `~/Library/Python/3.9/bin/`; invoke via `python3 -m <tool>` or full path if not on PATH.
+> All commands run from repo root. Use `.venv/bin/python3` — never bare `python`, `python3`, or `pytest`.
+> The project uses a local `.venv` (Python 3.12) to ensure consistent behaviour across local editors, terminals, and CI.
 
 ### Environment Setup
 ```bash
-python3 -m pip install -r requirements.txt
-python3 -m playwright install chromium   # required for crawler AND renderer
-npm ci                                    # install Tailwind CLI
+# 1. Create project-local virtual environment (one-time, Python 3.12)
+/opt/homebrew/Caskroom/miniconda/base/envs/py312/bin/python3 -m venv .venv
+
+# 2. Install Python dependencies
+.venv/bin/pip install -r requirements.txt
+
+# 3. Install Playwright Chromium browser
+.venv/bin/playwright install chromium
+
+# 4. Install Node / Tailwind CLI
+npm ci
 npm run build:css                         # compile templates/card.compiled.css
+
+# Activate once per shell session (optional, shortens commands)
+source .venv/bin/activate
 ```
+
+> **Note for cloud/CI**: on a fresh Linux host without conda, replace step 1 with:
+> `python3.12 -m venv .venv` (ensure Python 3.12 is installed first).
 
 ### Pipeline
 ```bash
-python3 run_daily.py                      # full run: crawl → analyze → render
-python3 run_daily.py --date 2026-03-06   # backfill a specific date
-python3 crawler.py --keyword "AI 副业" --dry-run  # test crawl, no DB write
+.venv/bin/python3 run_daily.py                      # full run: crawl → analyze → render
+.venv/bin/python3 run_daily.py --date 2026-03-06   # backfill a specific date
+.venv/bin/python3 crawler.py --keyword "AI 副业" --dry-run  # test crawl, no DB write
 ```
 
 ### Testing
 ```bash
 # All tests
-python3 -m pytest tests/ -v
+.venv/bin/python3 -m pytest tests/ -v
 
 # Single file
-python3 -m pytest tests/test_analyzer.py -v
+.venv/bin/python3 -m pytest tests/test_analyzer.py -v
 
 # Single test function
-python3 -m pytest tests/test_analyzer.py::TestGetStatus::test_cold -v
+.venv/bin/python3 -m pytest tests/test_analyzer.py::TestGetStatus::test_cold -v
 
 # Renderer tests (outputs PNGs to tests/fixtures/output/)
-python3 -m pytest tests/test_renderer.py -v
+.venv/bin/python3 -m pytest tests/test_renderer.py -v
 ```
 
 ### Lint & Format (run before every commit)
 ```bash
-python3 -m black . --line-length 100          # format (non-negotiable)
-python3 -m black . --line-length 100 --check  # CI-style check
-python3 -m ruff check .                        # lint
-python3 -m ruff check . --fix                  # auto-fix lint errors
-python3 -m mypy . --ignore-missing-imports     # type check
+.venv/bin/python3 -m black . --line-length 100          # format (non-negotiable)
+.venv/bin/python3 -m black . --line-length 100 --check  # CI-style check
+.venv/bin/python3 -m ruff check .                        # lint
+.venv/bin/python3 -m ruff check . --fix                  # auto-fix lint errors
+.venv/bin/python3 -m mypy . --ignore-missing-imports     # type check
 ```
 
 ---
@@ -83,10 +97,9 @@ python3 -m mypy . --ignore-missing-imports     # type check
 ## 4. Code Style
 
 ### Language & Compatibility
-- **Target**: Python 3.11+. **Local dev**: Python 3.9.6 (Xcode system Python).
-- Use `Union[X, Y]` from `typing` — never `X | Y` (requires 3.10+).
-- Use `List[...]`, `Dict[...]`, `Tuple[...]` from `typing` for the same reason.
-- `match` statements and `tomllib` are 3.10+/3.11+ — avoid unless gated by a version check.
+- **Target**: Python 3.12 (local `.venv` and CI both use 3.12).
+- `X | Y` union syntax and `match` statements are fine — both require 3.10+, which 3.12 satisfies.
+- Still prefer `Union[X, Y]` / `List[...]` / `Dict[...]` only if you need the code to be readable by older tools; otherwise modern syntax is acceptable.
 
 ### Type Annotations
 - All public function signatures **must** have full annotations (params + return type).
@@ -175,4 +188,4 @@ Modules communicate **only** via `TypedDict` dicts. No shared global state. All 
 
 - **No unauthorized browsing**: only open files referenced in `docs/architecture.md` or the active STM task list.
 - **No silent drift**: never change architecture without updating `docs/architecture.md` and getting user consent.
-- **No bare `python`/`pytest`**: always `python3` / `python3 -m pytest`.
+- **No bare `python`/`pytest`**: always `.venv/bin/python3` / `.venv/bin/python3 -m pytest`.
