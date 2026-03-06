@@ -30,6 +30,9 @@ AI-Shovel-Index/
 ├── analyzer.py
 ├── config.py
 ├── crawler.py
+├── deploy/
+│   ├── systemd/
+│   └── vps/
 ├── preview_all.py
 ├── renderer.py
 ├── smoke_test.py
@@ -200,6 +203,7 @@ The project is production-like in workflow, but not yet fully deployment-hardene
 - Renderer now validates required templates and expected output files before returning success.
 - The workflow now installs dependencies into a project-local `.venv` and supports a manual smoke-test mode.
 - `run_daily.py` now logs crawl health ratios and structured step summaries to stdout for easier cloud diagnosis.
+- a repo-local VPS deployment kit now exists under `deploy/vps/` and `deploy/systemd/`
 
 ### Known Deployment Gaps
 - font consistency on Linux servers is not guaranteed yet

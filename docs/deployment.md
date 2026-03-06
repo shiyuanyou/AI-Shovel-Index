@@ -121,6 +121,18 @@ Example cron for 10:00 Beijing time on a UTC server:
 ### Option B: systemd timer
 Prefer this if you want better logs, restart behavior, and clearer service ownership than cron.
 
+Repo-ready assets are now available for this path:
+- `deploy/vps/README.md`
+- `deploy/vps/bootstrap_ubuntu.sh`
+- `deploy/systemd/ai-shovel-index.service`
+- `deploy/systemd/ai-shovel-index.timer`
+
+Recommended flow:
+1. run `deploy/vps/bootstrap_ubuntu.sh` on the server
+2. install the systemd unit templates from `deploy/systemd/`
+3. run one manual `smoke_test.py` and one manual `run_daily.py`
+4. enable `ai-shovel-index.timer`
+
 ## Persistence Decision
 
 For cloud deployment, `data/index.db` should move to server-local persistence and stop being treated as a git-synchronized artifact.

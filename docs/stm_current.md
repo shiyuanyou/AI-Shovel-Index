@@ -44,3 +44,9 @@
 - [ ] One clean daily run can execute in the target deployment environment without manual intervention
 - [ ] Rendered cards are visually stable on the deployment OS
 - [ ] Failure modes are explicit enough that a broken crawl or render is easy to detect
+
+## VPS Deployment Kit
+
+- [x] Add a repo-local Ubuntu VPS bootstrap script
+- [x] Add systemd service and timer templates for the recommended deployment target
+- [x] Add a step-by-step VPS deployment README tied to this project

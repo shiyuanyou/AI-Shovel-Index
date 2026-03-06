@@ -1,0 +1,25 @@
+[Unit]
+Description=AI Shovel Index daily batch
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=__APP_DIR__/run_daily.py
+
+[Service]
+Type=oneshot
+User=__APP_USER__
+Group=__APP_USER__
+WorkingDirectory=__APP_DIR__
+Environment=PYTHONUNBUFFERED=1
+ExecStart=__APP_DIR__/.venv/bin/python3 __APP_DIR__/run_daily.py
+Nice=10
+IOSchedulingClass=best-effort
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=__APP_DIR__/data __APP_DIR__/output
+StandardOutput=journal
+StandardError=inherit
+TimeoutStartSec=30min
+
+[Install]
+WantedBy=multi-user.target

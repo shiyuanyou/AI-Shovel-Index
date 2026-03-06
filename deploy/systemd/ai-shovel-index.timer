@@ -1,0 +1,12 @@
+[Unit]
+Description=Run AI Shovel Index daily at 02:00 UTC (10:00 Beijing)
+
+[Timer]
+OnCalendar=*-*-* 02:00:00 UTC
+Persistent=true
+AccuracySec=1min
+RandomizedDelaySec=2min
+Unit=ai-shovel-index.service
+
+[Install]
+WantedBy=timers.target
