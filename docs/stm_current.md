@@ -97,10 +97,10 @@
 
 ## 全局完成标准
 
-- [x] `pytest tests/ -v` 全部通过
-- [ ] `black . --line-length 100 --check` 无报错
-- [ ] `ruff check .` 无报错
-- [ ] `mypy . --ignore-missing-imports` 无 error 级别报错
+- [x] `pytest tests/ -v` 全部通过（40/40）
+- [x] `black . --line-length 100 --check` 无报错
+- [x] `ruff check .` 无报错
+- [x] `mypy . --ignore-missing-imports` 无 error 级别报错
 - [ ] GitHub Actions 手动触发一次，artifact 可下载验证
 
 ---
