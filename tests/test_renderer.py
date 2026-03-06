@@ -76,12 +76,12 @@ class TestRenderOutputFiles:
 
 
 class TestImageDimensions:
-    def test_image_size_1200x630(self, tmp_path: Path) -> None:
+    def test_image_size_1080x1080(self, tmp_path: Path) -> None:
         result = _make_result()
         png_path, _ = render(result, output_dir=tmp_path)
         img = Image.open(png_path)
         assert img.size == (IMAGE_WIDTH, IMAGE_HEIGHT)
-        assert img.size == (1200, 630)
+        assert img.size == (1080, 1080)
 
     def test_image_mode_rgb(self, tmp_path: Path) -> None:
         result = _make_result()

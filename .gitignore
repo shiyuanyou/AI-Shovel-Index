@@ -34,7 +34,9 @@ tests/fixtures/output/*.txt
 *.swp
 *.swo
 
-# Playwright browser binaries (installed via `playwright install`)
-# These live in ~/.cache/ms-playwright, not in the project dir,
-# but guard against accidental inclusion if a custom path is set.
-playwright-browsers/
+# Node / Tailwind build
+node_modules/
+# compiled CSS is committed so Python renderer works without running npm
+# (re-generate with: npm run build:css)
+
+

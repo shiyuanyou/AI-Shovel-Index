@@ -42,14 +42,20 @@
 - [x] 创建 `renderer.py`（HTML + Playwright 截图方案，替代原 Pillow 手绘）
   - [x] `render(result: AnalysisResult, output_dir?) -> tuple[Path, Path]`：生成 PNG + post.txt
   - [x] 创建 `templates/card.html`：Jinja2 模板，深色 Apple Keynote 风格，左右分栏布局
-  - [x] Playwright Chromium headless 截图（1200×630 固定 viewport + clip）
+  - [x] Playwright Chromium headless 截图（1200×1200 固定 viewport + clip）
   - [x] `warming_up=True` 时在图片和 post.txt 显示 "(warming up)"
   - [x] `post.txt` 格式：日期、得分、状态、关键词排行、hashtag
   - [x] `requirements.txt` 新增 `jinja2>=3.1.0`
   - [x] `config.py` 新增 `TEMPLATES_DIR` 路径常量
-- [x] 创建 `tests/test_renderer.py`（接口不变，40/40 全通过）
+- [x] **视觉重设计（2026-03-06）**：1200×1200 正方形，新信息架构
+  - [x] `config.py` `IMAGE_HEIGHT` 改为 1200
+  - [x] `templates/card.html` 全面重写：Top Drivers / Cooling 两栏 + yoyoo.ai 页脚
+  - [x] `renderer.py` `_build_context()` 更新：rankings 拆分为 drivers/cooling，新增 `_PHASE_LABELS`
+  - [x] `tests/test_renderer.py` 更新：`(1200, 630)` → `(1200, 1200)`
+  - [x] 5张 preview 图重新生成（`tests/fixtures/preview/`）
+- [x] 创建 `tests/test_renderer.py`（40/40 全通过）
 
-**验收标准**：`python3 -m pytest tests/ -v` 40/40 全部通过。✅ 2026-03-06
+**验收标准**：`python3 -m pytest tests/ -v` 40/40 全部通过。✅ 2026-03-06（含视觉重设计）
 
 ---
 
@@ -91,7 +97,7 @@
 
 ## 全局完成标准
 
-- [ ] `pytest tests/ -v` 全部通过
+- [x] `pytest tests/ -v` 全部通过
 - [ ] `black . --line-length 100 --check` 无报错
 - [ ] `ruff check .` 无报错
 - [ ] `mypy . --ignore-missing-imports` 无 error 级别报错
@@ -108,3 +114,4 @@
 | 2026-03-06 | 风格参考苹果发布会 PPT | 深色+精准数据展示，高辨识度 |
 | 2026-03-06 | 存储用 SQLite | 单文件，无服务器依赖，结构化查询简单 |
 | 2026-03-06 | data/index.db 纳入 git 追踪 | GitHub Actions 需跨 run 累积历史数据；journal/wal 仍忽略 |
+| 2026-03-06 | 图片尺寸改为 1200×1200 正方形 | 社交媒体正方形格式适配更广；Top Drivers/Cooling 两栏新信息架构需垂直空间 |

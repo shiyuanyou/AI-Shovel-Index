@@ -59,8 +59,8 @@ STATUS_THRESHOLDS: list[tuple[float, str]] = [
 # Render style constants
 # ---------------------------------------------------------------------------
 
-IMAGE_WIDTH: int = 1200
-IMAGE_HEIGHT: int = 630
+IMAGE_WIDTH: int = 1080
+IMAGE_HEIGHT: int = 1080
 BG_COLOR: str = "#0a0a0a"
 TEXT_COLOR: str = "#ffffff"
 SUBTEXT_COLOR: str = "#888888"
